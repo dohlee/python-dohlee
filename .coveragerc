@@ -1,0 +1,16 @@
+[paths]
+source =
+   src/dohlee
+   */site-packages/dohlee
+
+[run]
+branch = true
+source =
+    dohlee
+    tests
+parallel = true
+
+[report]
+show_missing = true
+precision = 2
+omit = *migrations*
