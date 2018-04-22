@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import numpy as np
 
+
 def pca(data, labels=None, title=None, file=None):
     '''Draw a simple principle component analysis plot of the data.'''
     # Fit PCA and get pc's
