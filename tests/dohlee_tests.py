@@ -2,5 +2,5 @@
 from dohlee.cli import main
 
 
-def test_main():
+def main_test():
     main([])
