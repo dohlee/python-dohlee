@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import io
 import re
+import warnings
 from glob import glob
 from os.path import basename
 from os.path import dirname
@@ -13,6 +14,51 @@ from os.path import splitext
 
 from setuptools import find_packages
 from setuptools import setup
+from setuptools.command.install import install
+
+
+class move_ttf(install):
+    def run(self):
+        """
+        Performs the usual install process and then copies the True Type fonts
+        that come with clearplot into matplotlib's True Type font directory,
+        and deletes the matplotlib fontList.cache
+        """
+        # Perform the usual install process
+        install.run(self)
+        # Try to install custom fonts
+        try:
+            import os
+            import shutil
+            import dohlee as doh
+            import matplotlib as mpl
+
+            # Find where matplotlib stores its True Type fonts
+            mpl_data_dir = os.path.dirname(mpl.matplotlib_fname())
+            mpl_ttf_dir = os.path.join(mpl_data_dir, 'fonts', 'ttf')
+
+            # Copy the font files to matplotlib's True Type font directory
+            # (I originally tried to move the font files instead of copy them,
+            # but it did not seem to work, so I gave up.)
+            cp_ttf_dir = os.path.join(os.path.dirname(doh.__file__), 'true_type_fonts')
+            for file_name in os.listdir(cp_ttf_dir):
+                if file_name[-4:] == '.ttf':
+                    old_path = os.path.join(cp_ttf_dir, file_name)
+                    new_path = os.path.join(mpl_ttf_dir, file_name)
+                    shutil.copyfile(old_path, new_path)
+                    print("Copying " + old_path + " -> " + new_path)
+
+            # Try to delete matplotlib's fontList cache
+            mpl_cache_dir = mpl.get_cachedir()
+            mpl_cache_dir_ls = os.listdir(mpl_cache_dir)
+            font_list_cache_names = ["fontList.cache", "fontList.py3k.cache"]
+            for font_list_cache_name in font_list_cache_names:
+                if font_list_cache_name in mpl_cache_dir_ls:
+                    fontList_path = os.path.join(mpl_cache_dir, font_list_cache_name)
+                    os.remove(fontList_path)
+                    print("Deleted the matplotlib " + font_list_cache_name)
+        except Exception:
+            warnings.warn("WARNING: An issue occured while installing the custom fonts for clearplot.")
 
 
 def read(*names, **kwargs):
@@ -77,5 +123,8 @@ setup(
         'console_scripts': [
             'dohlee = dohlee.cli:main',
         ]
+    },
+    cmdclass={
+        'install': move_ttf
     },
 )
