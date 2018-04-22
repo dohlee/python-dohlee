@@ -14,7 +14,6 @@ Overview
         | |coveralls| |codecov|
     * - package
       - | |version| |wheel| |supported-versions| |supported-implementations|
-        | |commits-since|
 
 .. |docs| image:: https://readthedocs.org/projects/python-dohlee/badge/?style=flat
     :target: https://readthedocs.org/projects/python-dohlee
@@ -44,10 +43,6 @@ Overview
     :alt: PyPI Package latest release
     :target: https://pypi.python.org/pypi/dohlee
 
-.. |commits-since| image:: https://img.shields.io/github/commits-since/dohlee/python-dohlee/v0.1.1.svg
-    :alt: Commits since latest release
-    :target: https://github.com/dohlee/python-dohlee/compare/v0.1.1...master
-
 .. |wheel| image:: https://img.shields.io/pypi/wheel/dohlee.svg
     :alt: PyPI Wheel
     :target: https://pypi.python.org/pypi/dohlee
@@ -63,7 +58,7 @@ Overview
 
 .. end-badges
 
-My personal python utility library.
+My personal python utility library. Currently on version v0.1.1.
 
 * Free software: MIT license
 
