@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
-from sklearn.decomposition import PCA
 import numpy as np
+import seaborn as sns
+from sklearn.decomposition import PCA
+
+sns.set(font='Helvetica Neue', style='white', context='paper', font_scale=1.66)
 
 
 def pca(data, labels=None, title=None, file=None):
@@ -23,7 +26,7 @@ def pca(data, labels=None, title=None, file=None):
             toDraw = (labels == label)  # only draw these points this time
 
             plt.scatter(x=pc[toDraw, 0], y=pc[toDraw, 1], label=label)
-            plt.legend()
+            plt.legend(loc='best')
 
     # show explained variance ratio in the plot axes
     explainedVarianceRatio = pca.explained_variance_ratio_
