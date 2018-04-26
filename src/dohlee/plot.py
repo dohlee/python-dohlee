@@ -7,11 +7,17 @@ import seaborn as sns
 from sklearn.decomposition import PCA
 from collections import Counter
 
-sns.set(font='Helvetica Neue', style='white', context='paper', font_scale=1.66)
+# Set plot preference which looks good to me.
+sns.set(style='white',
+        palette='deep',
+        context='talk',
+        font='Helvetica Neue',
+        font_scale=1.25,
+        rc={'figure.figsize': (11.7, 8.27)})
 
 
 def show_or_save(file):
-    plt.show() if file is None else plt.savefig(file)
+    plt.show() if file is None else plt.savefig(file, dpi=150)
     plt.clf()
 
 
