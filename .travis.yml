@@ -5,20 +5,14 @@ env:
   global:
     - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
     - SEGFAULT_SIGNALS=all
-  matrix:
-    - TOXENV=check
-    - TOXENV=docs
 matrix:
   include:
-    - python: '3.4'
-      env:
-        - TOXENV=py34,coveralls,codecov
     - python: '3.5'
       env:
         - TOXENV=py35,coveralls,codecov
     - python: '3.6'
       env:
-        - TOXENV=py36,coveralls,codecov
+        - TOXENV=py36,coveralls,codecov,check,docs
 before_install:
   - python --version
   - uname -a
@@ -29,6 +23,10 @@ install:
   - easy_install --version
   - pip --version
   - tox --version
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
 script:
   - tox -v
 after_failure:

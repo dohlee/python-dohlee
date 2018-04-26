@@ -99,7 +99,6 @@ setup(
         # 'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         # 'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         # 'Programming Language :: Python :: Implementation :: CPython',
@@ -115,6 +114,14 @@ setup(
     ],
     install_requires=[
         # eg: 'aspectlib==1.1.1', 'six>=1.7',
+        'matplotlib==2.2.2',
+        'numpy==1.14.2',
+        'pandas==0.22.0',
+        'scikit-learn==0.19.1',
+        'scipy==1.0.1',
+        'seaborn==0.8.1',
+        'six==1.11.0',
+        'sklearn==0.0',
     ],
     extras_require={
         # eg:
