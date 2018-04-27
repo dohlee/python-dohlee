@@ -122,6 +122,8 @@ setup(
         'seaborn==0.8.1',
         'six==1.11.0',
         'sklearn==0.0',
+        'mygene==3.0.0',
+        'pyensembl==1.2.6',
     ],
     extras_require={
         # eg:
