@@ -8,12 +8,13 @@ from sklearn.decomposition import PCA
 from collections import Counter
 
 # Set plot preference which looks good to me.
-sns.set(style='white',
-        palette='deep',
-        context='talk',
-        font='Helvetica Neue',
-        font_scale=1.25,
-        rc={'figure.figsize': (11.7, 8.27)})
+def set(style='white', palette='deep', context='talk', font='Helvetica Neue', font_scale=1.25, rcparams={'figure.figsize': (11.7, 8.27)}):
+    sns.set(style=style,
+            palette=palette,
+            context=context,
+            font=font,
+            font_scale=font_scale,
+            rc=rcparams)
 
 
 def show_or_save(file):
@@ -21,29 +22,46 @@ def show_or_save(file):
     plt.clf()
 
 
-def bar_chart(data, ordinal=True, keys=None, title=None, file=None, **kwargs):
+def bar_chart(data, keys=None, title=None, ordinal=True, horizontal=False, sort_by_values=False, file=None, **kwargs):
+    if ordinal:
+        if not horizontal:
+            ordinal_vertical_bar_chart(data, keys=keys, title=title, file=file, sort_by_values=sort_by_values, **kwargs)
+        else:
+            ordinal_horizontal_bar_chart(data, keys=keys, title=title, file=file, sort_by_values=sort_by_values, **kwargs)
+
+    else:
+        raise NotImplementedError
+
+
+def ordinal_vertical_bar_chart(data, keys=None, title=None, sort_by_values=False, file=None, **kwargs):
     counter = Counter(data)
     if keys is None:
-        keys = sorted(counter.keys()) if ordinal else counter.keys()
+        if sort_by_values:
+            keys = sorted(counter, key=counter.get, reverse=True)
+        else:
+            keys = sorted(counter.keys())
     counts = [counter[key] for key in keys]
 
     # Some parameters used in plot configuration.
     height = max(counts) * 1.167
+    xs = list(range(1, len(keys) + 1))
 
     # Preset plot.
+    plt.xticks(xs, keys)
+    plt.xlim([min(keys) - 0.66, max(keys) + 0.66])
     plt.ylim([0, height])
     if title is not None:
         plt.title(title)
 
     # Plot bar chart.
-    plt.bar(x=keys,
+    plt.bar(x=xs,
             height=counts,
             width=0.66,
             **kwargs)
 
     # Add text indicating count value for each bar.
-    for key, count in zip(keys, counts):
-        plt.text(x=key,
+    for x, count in zip(xs, counts):
+        plt.text(x=x,
                  y=count,
                  s=str(count),
                  size='small',
@@ -51,6 +69,48 @@ def bar_chart(data, ordinal=True, keys=None, title=None, file=None, **kwargs):
                  horizontalalignment='center')
 
     show_or_save(file)
+
+
+def ordinal_horizontal_bar_chart(data, keys=None, title=None, sort_by_values=False, file=None, **kwargs):
+        counter = Counter(data)
+        if keys is None:
+            if sort_by_values:
+                keys = sorted(counter, key=counter.get)
+            else:
+                keys = sorted(counter.keys(), reverse=True)
+        else:
+            keys = keys[::-1]
+
+        counts = [counter[key] for key in keys]
+
+        # Some parameters used in plot configuration.
+        width = max(counts) * 1.167
+        ys = list(range(1, len(keys) + 1))
+
+        # Preset plot.
+        plt.xlim([0, width])
+        plt.ylim([min(keys) - 0.66, max(keys) + 0.66])
+        yticks = plt.yticks(ys, keys)
+        if title is not None:
+            plt.title(title)
+
+        # Plot bar chart.
+        plt.barh(y=ys,
+                width=counts,
+                height=0.66,
+                **kwargs)
+
+        # Add text indicating count value for each bar.
+        for y, count in zip(ys, counts):
+            plt.text(x=count + 0.0167 * width,
+                     y=y,
+                     s=str(count),
+                     size='small',
+                     verticalalignment='center',
+                     horizontalalignment='left')
+
+
+        show_or_save(file)
 
 
 def histogram(data, title=None, xlim=None, file=None, **kwargs):
