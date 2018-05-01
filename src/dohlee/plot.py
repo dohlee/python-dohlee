@@ -33,7 +33,7 @@ def bar_chart(data, keys=None, title=None, ordinal=True, horizontal=False, sort_
         raise NotImplementedError
 
 
-def ordinal_vertical_bar_chart(data, keys=None, title=None, sort_by_values=False, file=None, **kwargs):
+def ordinal_vertical_bar_chart(data, keys=None, title=None, sort_by_values=False, axis=None, there_are_more_plots=False, file=None, **kwargs):
     counter = Counter(data)
     if keys is None:
         if sort_by_values:
@@ -68,10 +68,11 @@ def ordinal_vertical_bar_chart(data, keys=None, title=None, sort_by_values=False
                  verticalalignment='bottom',
                  horizontalalignment='center')
 
-    show_or_save(file)
+    if not there_are_more_plots:
+        show_or_save(file)
 
 
-def ordinal_horizontal_bar_chart(data, keys=None, title=None, sort_by_values=False, file=None, **kwargs):
+def ordinal_horizontal_bar_chart(data, keys=None, title=None, sort_by_values=False, there_are_more_plots=False, file=None, **kwargs):
         counter = Counter(data)
         if keys is None:
             if sort_by_values:
@@ -109,11 +110,11 @@ def ordinal_horizontal_bar_chart(data, keys=None, title=None, sort_by_values=Fal
                      verticalalignment='center',
                      horizontalalignment='left')
 
+        if not there_are_more_plots:
+            show_or_save(file)
 
-        show_or_save(file)
 
-
-def histogram(data, title=None, xlim=None, file=None, **kwargs):
+def histogram(data, title=None, xlim=None, there_are_more_plots=False, file=None, **kwargs):
 
     if title is not None:
         plt.title(title)
@@ -122,10 +123,11 @@ def histogram(data, title=None, xlim=None, file=None, **kwargs):
         plt.xlim(xlim)
 
     plt.hist(data, color='black', ec='white', lw=1.33, **kwargs)
-    show_or_save(file)
+    if not there_are_more_plots:
+        show_or_save(file)
 
 
-def pca(data, labels=None, title=None, file=None):
+def pca(data, labels=None, title=None, there_are_more_plots=False, file=None):
     '''Draw a simple principle component analysis plot of the data.'''
     # Fit PCA and get pc's
     pca = PCA(n_components=2)
@@ -152,4 +154,5 @@ def pca(data, labels=None, title=None, file=None):
     plt.xlabel('PC1 ({:.2%})'.format(explainedVarianceRatio[0]))
     plt.ylabel('PC2 ({:.2%})'.format(explainedVarianceRatio[1]))
 
-    show_or_save(file)
+    if not there_are_more_plots:
+        show_or_save(file)
