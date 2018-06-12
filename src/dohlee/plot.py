@@ -8,7 +8,7 @@ from sklearn.decomposition import PCA
 from collections import Counter
 
 # Set plot preference which looks good to me.
-def set(style='white', palette='deep', context='talk', font='Helvetica Neue', font_scale=1.25, rcparams={'figure.figsize': (11.7, 8.27)}):
+def set_style(style='white', palette='deep', context='talk', font='Helvetica Neue', font_scale=1.25, rcparams={'figure.figsize': (11.7, 8.27)}):
     sns.set(style=style,
             palette=palette,
             context=context,
