@@ -58,7 +58,7 @@ Overview
 
 .. end-badges
 
-My personal python utility library. Currently on version v0.1.3.
+My personal python utility library. Currently on version v0.1.4.
 
 * Free software: MIT license
 
