@@ -7,6 +7,7 @@ import seaborn as sns
 from sklearn.decomposition import PCA
 from collections import Counter
 
+
 # Set plot preference which looks good to me.
 def set_style(style='white', palette='deep', context='talk', font='Helvetica Neue', font_scale=1.25, rcparams={'figure.figsize': (11.7, 8.27)}):
     sns.set(style=style,
@@ -17,12 +18,80 @@ def set_style(style='white', palette='deep', context='talk', font='Helvetica Neu
             rc=rcparams)
 
 
-def show_or_save(file):
-    plt.show() if file is None else plt.savefig(file, dpi=150)
+def show_or_save(file, dpi=150):
+    """If file is specified, save the figure to the file with given resolution in dpi.
+    Otherwise, show the figure.
+    """
+    plt.show() if file is None else plt.savefig(file, dpi=dpi)
     plt.clf()
 
 
-def bar_chart(data, keys=None, title=None, ordinal=True, horizontal=False, sort_by_values=False, file=None, **kwargs):
+def get_ax_to_draw(ax):
+    """If ax is not specified, return an axis to draw a plot.
+    Otherwise, return ax.
+    """
+    if ax:
+        return ax
+    else:
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        return ax
+
+
+def frequency(data, order=None, title=None, sort_by_values=False, ax=None, file=None, **kwargs):
+    """Plot frequency bar chart.
+
+    Examples:
+        frequency([1, 2, 2, 3, 3, 3], order=[3, 1, 2], sort_by_values=True)
+
+    Attributes:
+        data (list): A list of elements.
+        order (list): A list of elements which represents the order of the elements to be plotted.
+        sort_by_values (bool): If True, the plot will be sorted in decreasing order of frequency values.
+    """
+    counter = Counter(data)
+    if order is None:
+        if sort_by_values:
+            order = sorted(counter, key=counter.get, reverse=True)
+        else:
+            order = sorted(counter.keys())
+    else:
+        assert set(order) == set(counter.keys()), 'The order must contain all the elements.'
+    counts = [counter[key] for key in order]
+
+    ax = get_ax_to_draw(ax)
+
+    # Some parameters used for plot configuration.
+    height = max(counts) * 1.167
+    xticks = list(range(len(order)))
+
+    # Preset plot.
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(order)
+    ax.set_xlim([-0.66, len(counter) - 0.33])
+    ax.set_ylim([0, height])
+    if title is not None:
+        ax.set_title(title)
+
+    # Plot bar chart.
+    ax.bar(x=xticks,
+           height=counts,
+           width=0.66,
+           **kwargs)
+
+    # Add text indicating frequency for each bar.
+    for x, count in zip(xticks, counts):
+        ax.text(x=x,
+                y=count,
+                s=str(count),
+                size='small',
+                va='bottom',
+                ha='center')
+
+    show_or_save(file)
+
+
+def bar(data, keys=None, title=None, ordinal=True, horizontal=False, sort_by_values=False, file=None, **kwargs):
     if ordinal:
         if not horizontal:
             ordinal_vertical_bar_chart(data, keys=keys, title=title, file=file, sort_by_values=sort_by_values, **kwargs)
