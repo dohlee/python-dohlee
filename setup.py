@@ -72,7 +72,7 @@ def read(*names, **kwargs):
 
 setup(
     name='dohlee',
-    version='0.1.5',
+    version='0.1.6',
     license='MIT license',
     description='My personal python utility library.',
     long_description='%s\n%s' % (
