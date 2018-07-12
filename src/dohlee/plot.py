@@ -5,18 +5,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import sys
+
+from adjustText import adjust_text
 from sklearn.decomposition import PCA
+from matplotlib.lines import Line2D
 from collections import Counter
 from functools import wraps
 
-def get_ax_to_draw(ax):
+def get_ax_to_draw(ax, figsize=None):
     """If ax is not specified, return an axis to draw a plot.
     Otherwise, return ax.
     """
     if ax:
         return ax
     else:
-        fig = plt.figure()
+        fig = plt.figure(figsize=figsize) if figsize else plt.figure()
         ax = fig.add_subplot(111)
         return ax
 
@@ -29,6 +32,13 @@ def try_save(file, dpi=150):
 
 
 def save(file, dpi=120, tight_layout=True):
+    """Save plot to a file.
+
+    Attributes:
+        file (str): Path to the resulting image file.
+        dpi (int, default=120): Resolution.
+        tight_layout (bool, default=True): Whether to run plt.tight_layout() before saving the plot.
+    """
     if tight_layout:
         plt.tight_layout()
     plt.savefig(file, dpi=dpi)
@@ -37,9 +47,11 @@ def save(file, dpi=120, tight_layout=True):
 def my_plot(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        ax = get_ax_to_draw(kwargs.get('ax', None))
+        ax = get_ax_to_draw(kwargs.get('ax', None), kwargs.get('figsize', None))
         if 'ax' in kwargs:
             del kwargs['ax']
+        if 'figsize' in kwargs:
+            del kwargs['figsize']
 
         if 'title' in kwargs:
             ax.set_title(kwargs['title'])
@@ -50,6 +62,12 @@ def my_plot(func):
         if 'ylim' in kwargs:
             ax.set_ylim(kwargs['ylim'])
             del kwargs['ylim']
+        if 'xlabel' in kwargs:
+            ax.set_xlabel(kwargs['xlabel'])
+            del kwargs['xlabel']
+        if 'ylabel' in kwargs:
+            ax.set_ylabel(kwargs['ylabel'])
+            del kwargs['ylabel']
 
         result = func(*args, ax=ax, **kwargs)
         try_save(kwargs.get('file', None))
@@ -67,7 +85,7 @@ def set_style(style='white', palette='deep', context='talk', font='Helvetica Neu
 
 
 @my_plot
-def frequency(data, order=None, ax=None, sort_by_values=False, **kwargs):
+def frequency(data, order=None, sort_by_values=False, ax=None, **kwargs):
     """Plot frequency bar chart.
 
     Examples:
@@ -77,6 +95,7 @@ def frequency(data, order=None, ax=None, sort_by_values=False, **kwargs):
         data (list): A list of elements.
         order (list): A list of elements which represents the order of the elements to be plotted.
         sort_by_values (bool): If True, the plot will be sorted in decreasing order of frequency values.
+        ax (pyplot axis): Axis to draw the plot.
     """
     counter = Counter(data)
     if order is None:
@@ -119,6 +138,50 @@ def frequency(data, order=None, ax=None, sort_by_values=False, **kwargs):
 @my_plot
 def histogram(data, ax=None, **kwargs):
     plt.hist(data, color='black', ec='white', lw=1.33, **kwargs)
+
+
+@my_plot
+def volcano(data, x, y, padj, label, cutoff=0.05, sample1=None, sample2=None, ax=None):
+    """Draw a volcano plot.
+
+    Examples:
+        volcano(data=data, x='log2FoldChange', y='pvalue', label='Gene_Symbol', cutoff=0.05, padj='padj', figsize=(10.8, 8.4))
+
+    Attributes:
+        data (pandas dataframe): A dataframe resulting from DEG-discovery tool.
+        x (str): Column name denoting log2 fold change.
+        y (str): Column name denoting p-value.
+                 (Note that p-values will be log10-transformed, so they should not be transformed beforehand.)
+        padj (str): Column name denoting adjusted p-value.
+        label (str): Column name denoting gene identifier.
+        cutoff (float, optional): Adjusted p-value cutoff value to report significant DEGs.
+        sample1 (str, optional): First sample name.
+        sample2 (str, optional): Second sample name.
+        ax (pyplot axis): Axis to draw the plot.
+    """
+    # Set x and y extent.
+    x_limit = max(-np.min(data[x].values), np.max(data[x].values))
+    x_extent = [-x_limit * 1.22, x_limit * 1.22]
+    ax.set_xlim(x_extent)
+    ax.set_ylim([0, max(-np.log10(data[y].values)) * 1.1])
+
+    data_not_significant = data[data[padj] >= cutoff]
+    ax.scatter(data_not_significant[x].values, -np.log10(data_not_significant[y].values), color='grey', marker='.')
+
+    data_significant = data[data.padj < cutoff]
+    ax.scatter(data_significant[x].values, -np.log10(data_significant[y].values), color='red', marker='.')
+
+    texts = [ax.text(row[x], -np.log10(row[y]), row[label], fontsize=12) for _, row in data_significant.iterrows()]
+    adjust_text(texts)
+
+    line = Line2D([0], [0], color='red', lw=2.33, label='Adjusted p < %g' % cutoff)
+    plt.legend(handles=[line])
+
+    if (not sample1 is None) and (not sample2 is None):
+        ax.set_xlabel(r'$log_2$FC ($log_{2}\frac{%s}{%s}$)' % (sample1.replace(' ', '\ '), sample2.replace(' ', '\ ')))
+    else:
+        ax.set_xlabel(r'$log_2$FC')
+    ax.set_ylabel(r'$log_{10}$(p-value)')
 
 
 def pca(data, labels=None, ax=None, **kwargs):
