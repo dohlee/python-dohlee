@@ -28,16 +28,16 @@ def threaded(func, params, processes, progress=False, progress_type='tqdm'):
 
     with mp.Pool(processes=processes) as p:
         if progress:
-            if progresstype not in ['tqdm', 'tqdm_notebook']:
+            if progress_type not in ['tqdm', 'tqdm_notebook']:
                 # If given progresstype is not supported,
                 # fall back to tqdm.tqdm.
-                progresstype = 'tqdm'
+                progress_type = 'tqdm'
 
-            if progresstype == 'tqdm':
+            if progress_type == 'tqdm':
                 # Use tqdm.tqdm.
                 for result in tqdm(p.imap(imap_helper, [(func, p) for p in params]), total=len(list(params))):
                     yield result
-            elif progresstype == 'tqdm_notebook':
+            elif progress_type == 'tqdm_notebook':
                 # Use tqdm.tqdm_notebook.
                 for result in tqdm_notebook(p.imap(imap_helper, [(func, p) for p in params]), total=len(list(params))):
                     yield result
