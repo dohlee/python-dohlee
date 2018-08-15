@@ -1,19 +1,6 @@
-========
-Overview
-========
-
 .. start-badges
 
-.. list-table::
-    :stub-columns: 1
-
-    * - docs
-      - |docs|
-    * - tests
-      - | |travis| |appveyor| |requires|
-        | |coveralls| |codecov|
-    * - package
-      - | |version| |wheel| |supported-versions| |supported-implementations|
+|docs| |version| |travis| |coveralls|
 
 .. |docs| image:: https://readthedocs.org/projects/python-dohlee/badge/?style=flat
     :target: https://readthedocs.org/projects/python-dohlee
@@ -57,6 +44,9 @@ Overview
 
 
 .. end-badges
+======
+dohlee
+======
 
 My personal python utility library. Currently on version v0.1.10.
 
@@ -73,27 +63,3 @@ Documentation
 =============
 
 https://python-dohlee.readthedocs.io/
-
-Development
-===========
-
-To run the all tests run::
-
-    tox
-
-Note, to combine the coverage data from all the tox environments run:
-
-.. list-table::
-    :widths: 10 90
-    :stub-columns: 1
-
-    - - Windows
-      - ::
-
-            set PYTEST_ADDOPTS=--cov-append
-            tox
-
-    - - Other
-      - ::
-
-            PYTEST_ADDOPTS=--cov-append tox
