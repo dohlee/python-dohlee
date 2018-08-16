@@ -48,7 +48,7 @@
 dohlee
 ======
 
-My personal python utility library. Currently on version v0.1.10.
+My personal python utility library. Currently on version v0.1.11.
 
 * Free software: MIT license
 
