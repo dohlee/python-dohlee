@@ -78,7 +78,7 @@ def _my_plot(func):
 
 
 # Set plot preference which looks good to me.
-def set_style(style='white', palette='deep', context='talk', font='Helvetica Neue', font_scale=1.25, rcparams={'figure.figsize': (11.7, 8.27)}):
+def set_style(style='white', palette='deep', context='talk', font='FreeSans', font_scale=1.25, rcparams={'figure.figsize': (11.7, 8.27)}):
     """Set plot preference in a way that looks good to me.
     """
     sns.set(style=style,
