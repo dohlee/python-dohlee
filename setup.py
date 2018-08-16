@@ -38,6 +38,8 @@ class move_ttf(install):
         # Find where matplotlib stores its True Type fonts
         mpl_data_dir = os.path.dirname(mpl.matplotlib_fname())
         mpl_ttf_dir = os.path.join(mpl_data_dir, 'fonts', 'ttf')
+        if not os.path.exists(mpl_ttf_dir):
+            os.makedirs(mpl_ttf_dir)
 
         # Copy the font files to matplotlib's True Type font directory
         # (I originally tried to move the font files instead of copy them,
