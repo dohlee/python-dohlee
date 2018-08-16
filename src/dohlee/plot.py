@@ -69,8 +69,11 @@ def _my_plot(func):
             ax.set_ylabel(kwargs['ylabel'])
             del kwargs['ylabel']
 
+        file_path = kwargs.get('file', None)
+        if 'file' in kwargs:
+            del kwargs['file']
         result = func(*args, ax=ax, **kwargs)
-        _try_save(kwargs.get('file', None))
+        _try_save(file_path)
     return wrapper
 
 
