@@ -19,6 +19,7 @@ before_install:
   - lsb_release -a
 install:
   - pip install tox
+  - pip install pyensembl
   - virtualenv --version
   - easy_install --version
   - pip --version
@@ -27,6 +28,7 @@ before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
   - sleep 3 # give xvfb some time to start
+  - "pyensembl install --release 87 --species homo_sapiens"
 script:
   - tox -v
 after_failure:
