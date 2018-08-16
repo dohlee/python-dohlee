@@ -22,10 +22,8 @@ project = 'dohlee'
 copyright = '2018, Dohoon Lee'
 author = 'Dohoon Lee'
 
-# The short X.Y version
-version = '0.1'
 # The full version, including alpha/beta/rc tags
-release = '0.1.10'
+version = release = '0.1.10'
 
 
 # -- General configuration ---------------------------------------------------
