@@ -25,18 +25,18 @@ def _get_ax_to_draw(ax, figsize=None):
         return ax
 
 
-def _try_save(file, dpi=150):
+def _try_save(file, dpi=300):
     """If file is specified, save the figure to the file with given resolution in dpi.
     Otherwise, show the figure.
     """
     return None if file is None else plt.savefig(file, dpi=dpi)
 
 
-def save(file, dpi=120, tight_layout=True):
+def save(file, dpi=300, tight_layout=True):
     """Save plot to a file.
 
     :param str file: Path to the resulting image file.
-    :param int dpi: (default=120) Resolution.
+    :param int dpi: (default=300) Resolution.
     :param bool tight_layout: (default=True) Whether to run plt.tight_layout() before saving the plot.
     """
     if tight_layout:
@@ -78,7 +78,7 @@ def _my_plot(func):
 
 
 # Set plot preference which looks good to me.
-def set_style(style='white', palette='deep', context='talk', font='FreeSans', font_scale=1.25, rcparams={'figure.figsize': (11.7, 8.27)}):
+def set_style(style='white', palette='deep', context='talk', font='Helvetica Neue', font_scale=1.00, rcparams={'figure.figsize': (11.7, 8.27)}):
     """Set plot preference in a way that looks good to me.
     """
     sns.set(style=style,
@@ -89,18 +89,57 @@ def set_style(style='white', palette='deep', context='talk', font='FreeSans', fo
             rc=rcparams)
 
 
+def get_axis(preset=None, figsize=None, transpose=False, dpi=300):
+    """Get plot axis with predefined/user-defined width and height.
+
+    >>> get_axis(kind='extra-small')
+    >>> get_axis(kind='small')
+    >>> get_axis(kind='medium')
+    >>> get_axis(kind='large')
+    >>> get_axis(kind='extra-large')
+    >>> get_axis(kind='wide')
+    >>> get_axis(figsize=(7.2, 4.45))
+
+    :param str preset: Use preset width and height. (extra-small, small, medium, large, extra-large)
+    :param tuple figsize: Use user-defined width and height.
+    :param bool transpose: Swap width and height.
+    """
+    w, h = 7.2, 4.45  # Nature double-column preset inches.
+    assert (preset is None) or (figsize is None), 'You cannot use both preset and figsize argument.'
+    assert not (preset is None and figsize is None), 'You should specify one of preset or figsize argument.'
+    if preset is not None:
+        if preset == 'extra-small':
+            w, h = w / 4, h / 4
+        elif preset == 'small':
+            w, h = w / 3.5, h / 3.5
+        elif preset == 'medium':
+            w, h = w / 2, h / 2
+        elif preset == 'large':
+            w, h = w / 1.66, h / 1.66
+        elif preset == 'extra-large':
+            w, h = w / 1.33, h / 1.33
+    else:
+        w, h = figsize
+
+    if transpose:
+        w, h = h, w
+
+    fig = plt.figure(figsize=(w, h), dpi=dpi)
+    ax = fig.add_subplot(111)
+    return ax
+
+
 @_my_plot
-def frequency(data, order=None, sort_by_values=False, ax=None, **kwargs):
+def frequency(data, order=None, sort_by_values=False, dy=0.03, ax=None, **kwargs):
     """Plot frequency bar chart.
 
-    Examples:
-        frequency([1, 2, 2, 3, 3, 3], order=[3, 1, 2], sort_by_values=True)
+    >>> frequency([1, 2, 2, 3, 3, 3], order=[3, 1, 2], sort_by_values=True)
 
-    Attributes:
-        data (list): A list of elements.
-        order (list): A list of elements which represents the order of the elements to be plotted.
-        sort_by_values (bool): If True, the plot will be sorted in decreasing order of frequency values.
-        ax (pyplot axis): Axis to draw the plot.
+    :param list data: A list of elements.
+    :param list order: A list of elements which represents the order of the elements to be plotted.
+    :param bool sort_by_values: If True, the plot will be sorted in decreasing order of frequency values.
+    :param float dy: Gap between a bar and its count label.
+    :param pyplot-axis ax: Axis to draw the plot.
     """
     counter = Counter(data)
     if order is None:
@@ -133,9 +172,9 @@ def frequency(data, order=None, sort_by_values=False, ax=None, **kwargs):
     # Add text indicating frequency for each bar.
     for x, count in zip(xticks, counts):
         ax.text(x=x,
-                y=count,
+                y=count + dy,
                 s=str(count),
-                size='small',
+                size='large',
                 va='bottom',
                 ha='center')
 
@@ -151,6 +190,25 @@ def histogram(data, ax=None, **kwargs):
     :param axis ax: Matplotlib axis to draw the plot on.
     """
     plt.hist(data, color='black', ec='white', lw=1.33, **kwargs)
+
+
+@_my_plot
+def boxplot(data, x, y, hue=None, ax=None, strip=False, **kwargs):
+    """Draw a boxplot.
+
+    >>> boxplot(data, x='species', y='sepal_length', strip=True)
+
+    :param dataframe data: Dataframe for boxplot.
+    :param
+    :param axis ax: (Optional) Matplotlib axis to draw the plot on.
+    :param bool strip: (default=False) Draw overlapped stripplot.
+    """
+    fliersize = 0 if strip else 5
+    sns.boxplot(data=data, x=x, y=y, hue=hue, linewidth=1.33, flierprops={'marker': '.'}, fliersize=fliersize, ax=ax, **kwargs)
+    if strip:
+        sns.stripplot(data=data, x=x, y=y, hue=hue, jitter=.03, color='k', size=5, ax=ax)
+
+    return ax
 
 
 @_my_plot
