@@ -50,8 +50,6 @@ dohlee
 
 My personal python utility library. Currently on version v0.1.15.
 
-* Free software: MIT license
-
 Installation
 ============
 
@@ -63,3 +61,30 @@ Documentation
 =============
 
 https://python-dohlee.readthedocs.io/
+
+Examples
+========
+
+::
+
+    import itertools
+    import numpy as np
+    import dohlee.plot as plot; plot.set_style()
+    from collections import Counter
+
+    data = Counter()
+    c_contexts = [p + 'C' + n for (p, n) in itertools.product('ACGT', 'ACGT')]
+    t_contexts = [p + 'T' + n for (p, n) in itertools.product('ACGT', 'ACGT')]
+    c_alts, t_alts = 'AGT', 'ACG'
+
+    for context, alt in itertools.product(c_contexts, c_alts):
+        data[(context, alt)] = np.random.randint(1, 30)
+    for context, alt in itertools.product(t_contexts, t_alts):
+        data[(context, alt)] = np.random.randint(1, 30)
+
+    ax = plot.get_axis(figsize=(20.4, 3.4))
+    plot.mutation_signature(data, ax=ax)
+    plot.set_suptitle('Mutational signatures.')
+
+.. image:: img/mutation_signature.png
+    :width: 800

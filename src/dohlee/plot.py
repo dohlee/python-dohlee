@@ -1,10 +1,12 @@
 import matplotlib
 matplotlib.use('Agg')
 
+import sys
+import itertools
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import numpy as np
 import seaborn as sns
-import sys
 
 from adjustText import adjust_text
 from sklearn.decomposition import PCA
@@ -76,6 +78,11 @@ def _my_plot(func):
         _try_save(file_path)
     return wrapper
 
+
+def set_suptitle(title):
+    """Set suptitle for the plot.
+    """
+    plt.suptitle(title)
 
 # Set plot preference which looks good to me.
 def set_style(style='white', palette='deep', context='talk', font='Helvetica Neue', font_scale=1.00, rcparams={'figure.figsize': (11.7, 8.27)}):
@@ -290,3 +297,81 @@ def pca(data, labels=None, ax=None, **kwargs):
     explainedVarianceRatio = pca.explained_variance_ratio_
     plt.xlabel('PC1 ({:.2%})'.format(explainedVarianceRatio[0]))
     plt.ylabel('PC2 ({:.2%})'.format(explainedVarianceRatio[1]))
+
+@_my_plot
+def mutation_signature(data, ax=None, **kwargs):
+    def clear_spines(axis):
+        # Hide spines.
+        directions = ['top', 'right', 'bottom', 'left']
+        for d in directions:
+            axis.spines[d].set_visible(False)
+        # Hide ticklabels.
+        axis.set_xticklabels([])
+        axis.set_yticklabels([])
+
+    # (context, alt) -> index in 96-dim vector.
+    def mut2ind(context, alt):
+        ref = context[1]
+        assert ref in ['C', 'T'], 'ref not in [C, T], ref: %s' % ref
+
+        if ref == 'C':
+            return ('AGT'.find(alt)) * 16 + c_contexts.index(context)
+        else:
+            return (3 + 'ACG'.find(alt)) * 16 + t_contexts.index(context)
+
+    # Define trinucleotide contexts.
+    c_contexts = [p + 'C' + n for (p, n) in itertools.product('ACGT', 'ACGT')]
+    t_contexts = [p + 'T' + n for (p, n) in itertools.product('ACGT', 'ACGT')]
+
+    # Convert data(Counter) as a 96-dimension vector.
+    vectorized_data = np.zeros(96)
+    for (context, alt), count in data.items():
+        vectorized_data[mut2ind(context, alt)] = count
+    vectorized_data = vectorized_data / vectorized_data.sum()
+
+    #
+    # Draw figure.
+    #
+    subplotspec = ax.get_subplotspec()
+    grid = subplotspec.subgridspec(7, 6, hspace=0.03, wspace=0.03)
+
+    # Draw annotation bars above the main plot.
+    annotation_axes = [plt.subplot(grid[0, i]) for i in range(6)]
+    annotations = ['C>A', 'C>G', 'C>T', 'T>A', 'T>C', 'T>G']
+    colors = [
+        (30, 190, 240),
+        (5, 7, 9),
+        (231, 39, 38),
+        (202, 202, 202),
+        (161, 207, 100),
+        (238, 200, 197),
+    ]
+
+    for axis, annotation, color in zip(annotation_axes, annotations, colors):
+        clear_spines(axis)
+        axis.text(x=0.5, y=0.5, s=annotation, ha='center', fontsize='large')
+
+        rect = patches.Rectangle((0, 0), width=1, height=0.33, facecolor=[x/255 for x in color], linewidth=0)
+        axis.add_patch(rect)
+
+    # Draw main plot.
+    main_axis = plt.subplot(grid[1:, :])
+
+    xticklabel_dx = 0.11
+    main_axis.set_xticks(np.arange(0, 96, 1) + xticklabel_dx)
+    main_axis.set_xticklabels(c_contexts * 3 + t_contexts * 3, rotation=90, fontsize='small', ha='left', va='top', fontdict={'family': 'Dejavu Sans Mono'})
+    main_axis.tick_params(axis='x', pad=3)
+    main_axis.set_xlim([0, 96])
+    main_axis.spines['right'].set_visible(False)
+    main_axis.yaxis.set_tick_params(size=5)
+    main_axis.set_ylabel('Relative contribution')
+
+    data = np.array([np.random.randint(0, 30) for _ in range(96)])
+    data = data / data.sum()
+
+    bars = main_axis.bar(np.arange(0, 96, 1) + 0.5, vectorized_data, width=0.5)
+    for i in range(6):
+        start, end = 16 * i, 16 * (i+1)
+        r, g, b = colors[i]
+        for bar in bars[start:end]:
+            bar.set_facecolor([r / 255, g / 255, b / 255])

@@ -117,7 +117,7 @@ setup(
     ],
     install_requires=[
         # eg: 'aspectlib==1.1.1', 'six>=1.7',
-        'matplotlib>=2.2.2',
+        'matplotlib>=3.0.0',
         'numpy>=1.14.2',
         'pandas>=0.22.0',
         'scikit-learn>=0.19.1',
