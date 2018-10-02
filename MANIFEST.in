@@ -3,6 +3,9 @@ graft src
 graft ci
 graft tests
 
+prune img
+prune docs/_build
+
 include .bumpversion.cfg
 include .coveragerc
 include .cookiecutterrc
@@ -12,9 +15,9 @@ include AUTHORS.rst
 include CHANGELOG.rst
 include CONTRIBUTING.rst
 include LICENSE
-include README.rst
+include README.md
 include src/dohlee/fonts/*.ttf
 
 include tox.ini .travis.yml appveyor.yml
 
-global-exclude *.py[cod] __pycache__ *.so *.dylib img
+global-exclude *.py[cod] __pycache__ *.so *.dylib

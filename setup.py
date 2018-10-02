@@ -4,8 +4,6 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import io
-import re
-import warnings
 from glob import glob
 from os.path import basename
 from os.path import dirname
@@ -78,10 +76,12 @@ setup(
     version='0.1.15',
     license='MIT license',
     description='My personal python utility library.',
-    long_description='%s\n%s' % (
-        re.compile('^.. start-badges.*^.. end-badges', re.M | re.S).sub('', read('README.rst')),
-        re.sub(':[a-z]+:`~?(.*?)`', r'``\1``', read('CHANGELOG.rst'))
-    ),
+    # long_description='%s\n%s' % (
+    #     re.compile('^.. start-badges.*^.. end-badges', re.M | re.S).sub('', read('README.rst')),
+    #     re.sub(':[a-z]+:`~?(.*?)`', r'``\1``', read('CHANGELOG.rst'))
+    # ),
+    long_description=read('README.md'),
+    long_description_content_type='text/markdown',
     author='Dohoon Lee',
     author_email='apap950419@gmail.com',
     url='https://github.com/dohlee/python-dohlee',
@@ -119,7 +119,7 @@ setup(
         # eg: 'aspectlib==1.1.1', 'six>=1.7',
         'matplotlib>=3.0.0',
         'numpy>=1.14.2',
-        'pandas>=0.22.0',
+        'pandas>=0.23.4',
         'scikit-learn>=0.19.1',
         'scipy>=1.0.1',
         'seaborn>=0.8.1',
