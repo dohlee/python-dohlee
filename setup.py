@@ -128,7 +128,8 @@ setup(
         'mygene>=3.0.0',
         'pyensembl>=1.2.6',
         'tqdm>=4.23.0',
-        'adjustText>=0.7.3'
+        'adjustText>=0.7.3',
+        # 'fastTSNE>=0.2.6',
     ],
     extras_require={
         # eg:

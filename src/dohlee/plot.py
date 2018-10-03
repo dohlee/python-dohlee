@@ -13,6 +13,7 @@ from sklearn.decomposition import PCA
 from matplotlib.lines import Line2D
 from collections import Counter
 from functools import wraps
+from fastTSNE import TSNE
 
 
 def _get_ax_to_draw(ax, figsize=None):
@@ -282,7 +283,7 @@ def pca(data, labels=None, ax=None, **kwargs):
     pc = pca.transform(data)
 
     if labels is None:
-        plt.scatter(x=pc[:, 0], y=pc[:, 1])
+        plt.scatter(x=pc[:, 0], y=pc[:, 1], **kwargs)
 
     else:
         # If labels are attached, color them in different colors
@@ -297,6 +298,39 @@ def pca(data, labels=None, ax=None, **kwargs):
     explainedVarianceRatio = pca.explained_variance_ratio_
     plt.xlabel('PC1 ({:.2%})'.format(explainedVarianceRatio[0]))
     plt.ylabel('PC2 ({:.2%})'.format(explainedVarianceRatio[1]))
+
+
+@_my_plot
+def tsne(data, labels=None, ax=None, **kwargs):
+    '''Draw a T-SNE analysis plot of the data.
+
+    :param matrix data: Input data. Numpy array recommended.
+    :param list labels: (Optional) Corresponding labels to each datum.
+        If specified, data points in the plot will be colored according to the label.
+    :param axis ax: (Optional) Matplotlib axis to draw the plot on.
+    :param kwargs: Any other keyword arguments will be passed onto matplotlib.pyplot.scatter.
+    '''
+    # Fit T-SNE and get embeddings.
+    tsne = TSNE(n_components=2)
+    embeddings = tsne.fit(data)
+
+    if labels is None:
+        plt.scatter(x=embeddings[:, 0], y=embeddings[:, 1], **kwargs)
+
+    else:
+        # If labels are attached, color them in different colors
+        labels = np.array(labels)
+        for label in set(labels):
+            toDraw = (labels == label)  # only draw these points this time
+
+            plt.scatter(
+                x=embeddings[toDraw, 0],
+                y=embeddings[toDraw, 1],
+                label=label,
+                **kwargs
+            )
+            plt.legend(loc='best')
+
 
 @_my_plot
 def mutation_signature(data, ax=None, **kwargs):

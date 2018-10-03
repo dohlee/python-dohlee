@@ -12,6 +12,11 @@ def set_style_test():
     plot.set_style()
 
 
+def save_test():
+    plot.frequency([1, 2, 2, 3, 3, 3])
+    plot.save('tmp.png')
+
+
 def pca_test():
     data = iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']]
     plot.pca(data)
@@ -53,3 +58,13 @@ def frequency_test():
     data = [np.random.choice(a=range(10)) for _ in range(100)]
     ax = plot.get_axis(preset='wide')
     plot.frequency(data, ax=ax, xlabel='Your numbers', ylabel='Frequency')
+
+
+def tsne_test():
+    ax = plot.get_axis(preset='wide')
+    plot.tsne(
+        iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']],
+        ax=ax,
+        s=5,
+        labels=iris['species']
+    )

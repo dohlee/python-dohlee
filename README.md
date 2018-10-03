@@ -52,6 +52,19 @@ plot.frequency(data, ax=ax, xlabel='Your numbers', ylabel='Frequency')
 
 <p align='center'><img src='img/frequency.png'></p>
 
+***dohlee.plot.tsne***
+```python
+    ax = plot.get_axis(preset='wide')
+    plot.tsne(
+        iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']],
+        ax=ax,
+        s=5,
+        labels=iris['species']
+    )
+```
+
+<p align='center'><img src='img/tsne.png'></p>
+
 <h2 align='center'>Development</h2>
 
 Since this package is updated as needed when I'm doing my research, the development process fits well with TDD cycle.
