@@ -31,8 +31,7 @@ def threaded(func, params, processes, progress=False, progress_type='tqdm'):
         params (iterable): A list of parameters.
         processes (int): Number of processes to work on.
         progress (bool): if True, show progress bar.
-        progress_type (str): 'tqdm' - Default tqdm.tqdm will be used for progress bar.
-            'tqdm_notebook' - tqdm.tqdm_notebook will be used for progress bar.
+        progress_type (str): 'tqdm' or 'tqdm_notebook' can be used.
     """
     n_params = len(list(params))
     with mp.Pool(processes=processes) as p:

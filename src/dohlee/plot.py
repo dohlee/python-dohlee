@@ -207,7 +207,8 @@ def boxplot(data, x, y, hue=None, ax=None, strip=False, **kwargs):
     >>> boxplot(data, x='species', y='sepal_length', strip=True)
 
     :param dataframe data: Dataframe for boxplot.
-    :param
+    :param str x: Column name representing x variable of the plot.
+    :param str y: Column name representing y variable of the plot.
     :param axis ax: (Optional) Matplotlib axis to draw the plot on.
     :param bool strip: (default=False) Draw overlapped stripplot.
     """
