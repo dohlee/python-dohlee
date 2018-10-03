@@ -51,3 +51,25 @@ plot.frequency(data, ax=ax, xlabel='Your numbers', ylabel='Frequency')
 ```
 
 <p align='center'><img src='img/frequency.png'></p>
+
+<h2 align='center'>Development</h2>
+
+Since this package is updated as needed when I'm doing my research, the development process fits well with TDD cycle.
+- When you feel a need to write frequently-used research workflow as a function, write rough tests so that you can be sure that the function you've implemented just meets your need. Write the name of test function as verbose as possible!
+-  Run test with following commands. By default, nosetests ignores runnable files while finding test scripts. *--exe* option revokes it.
+```shell
+nosetests --exe --with-coverage --cover-package=dohlee
+```
+OR
+```shell
+tox -e py35,py36
+```
+- When sufficient progress have been made, test if the package can be published.
+```shell
+tox
+```
+- If all tests are passed, distribute the package via PyPI.
+```shell
+python setup.py sdist
+twine upload dist/dohlee-x.x.x.tar.gz
+```

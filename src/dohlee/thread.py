@@ -34,9 +34,6 @@ def threaded(func, params, processes, progress=False, progress_type='tqdm'):
         progress_type (str): 'tqdm' - Default tqdm.tqdm will be used for progress bar.
             'tqdm_notebook' - tqdm.tqdm_notebook will be used for progress bar.
     """
-    def star_func(args):
-        return func(*args)
-
     n_params = len(list(params))
     with mp.Pool(processes=processes) as p:
         if progress:

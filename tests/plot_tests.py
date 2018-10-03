@@ -1,9 +1,9 @@
+import dohlee.plot as plot; plot.set_style()
 import seaborn as sns
 from collections import Counter
 
 import itertools
 import numpy as np
-import dohlee.plot as plot
 
 iris = sns.load_dataset('iris')
 
