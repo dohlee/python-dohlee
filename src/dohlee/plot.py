@@ -6,6 +6,7 @@ import itertools
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
+import scipy.stats as stats
 import seaborn as sns
 
 from adjustText import adjust_text
@@ -23,9 +24,10 @@ def _get_ax_to_draw(ax, figsize=None):
     if ax:
         return ax
     else:
-        fig = plt.figure(figsize=figsize) if figsize else plt.figure()
-        ax = fig.add_subplot(111)
-        return ax
+        if figsize:
+            return get_axis(figsize=figsize)
+        else:
+            return get_axis(preset='wide')
 
 
 def _try_save(file, dpi=300):
@@ -410,3 +412,20 @@ def mutation_signature(data, ax=None, **kwargs):
         r, g, b = colors[i]
         for bar in bars[start:end]:
             bar.set_facecolor([r / 255, g / 255, b / 255])
+
+
+@_my_plot
+def linear_regression(x, y, regression=True, ax=None, color='k'):
+    """TODO
+    """
+    # Perform linear regression.
+    slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+
+    x_extent = np.array(ax.get_xlim())
+    ax.plot(x_extent, slope * x_extent + intercept, lw=1, color=color)
+
+    ax.scatter(x, y, s=5, color=color)
+
+    legend = ax.legend(labels=['$R^2$ = %.3f, p = %.3g' % (r_value ** 2, p_value)], loc='best', fontsize='xx-small', handlelength=0, handletextpad=0, )
+    for item in legend.legendHandles:
+        item.set_visible(False)
