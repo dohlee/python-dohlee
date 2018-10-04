@@ -90,6 +90,7 @@ def set_suptitle(title):
     """
     plt.suptitle(title)
 
+
 # Set plot preference which looks good to me.
 def set_style(style='white', palette='deep', context='talk', font='FreeSans', font_scale=1.00, rcparams={'figure.figsize': (11.7, 8.27)}):
     """Set plot preference in a way that looks good to me.
@@ -105,19 +106,25 @@ def set_style(style='white', palette='deep', context='talk', font='FreeSans', fo
             'https://sgp1.digitaloceanspaces.com/dohlee-bioinfo/dotfiles/dohlee.mplstyle',
             os.path.join(mpl.get_configdir(), 'stylelib', 'dohlee.mplstyle')
         )
+        # Loading style files is done at import time, so we should explicitly reload style files.
+        plt.style.reload_library()
 
+    # Update font list.
     mpl_data_dir = os.path.dirname(mpl.matplotlib_fname())
     font_files = font_manager.findSystemFonts(os.path.join(mpl_data_dir, 'fonts', 'ttf'))
     font_list = font_manager.createFontList(font_files)
     font_manager.fontManager.ttflist.extend(font_list)
 
-    sns.set(style=style,
-            palette=palette,
-            context=context,
-            font=font,
-            font_scale=font_scale,
-            rc=rcparams)
+    sns.set(
+        style=style,
+        palette=palette,
+        context=context,
+        font=font,
+        font_scale=font_scale,
+        rc=rcparams
+    )
     plt.style.use('dohlee')
+
 
 def get_axis(preset=None, figsize=None, transpose=False, dpi=300):
     """Get plot axis with predefined/user-defined width and height.
@@ -201,12 +208,16 @@ def frequency(data, order=None, sort_by_values=False, dy=0.03, ax=None, **kwargs
 
     # Add text indicating frequency for each bar.
     for x, count in zip(xticks, counts):
-        ax.text(x=x,
-                y=count + dy,
-                s=str(count),
-                size='large',
-                va='bottom',
-                ha='center')
+        ax.text(
+            x=x,
+            y=count + dy,
+            s=str(count),
+            size='large',
+            va='bottom',
+            ha='center'
+        )
+
+    return ax
 
 
 @_my_plot
@@ -215,11 +226,11 @@ def histogram(data, ax=None, **kwargs):
 
     >>> histogram(data=data, ax=ax, lw=1.55)
 
-    :param list data: A list containing values.
-        Density of the values will be drawn as a histogram.
+    :param list data: A list containing values. Density of the values will be drawn as a histogram.
     :param axis ax: Matplotlib axis to draw the plot on.
     """
-    plt.hist(data, color='black', ec='white', lw=1.33, **kwargs)
+    ax.hist(data, color='black', ec='white', lw=1.33, **kwargs)
+    return ax
 
 
 @_my_plot
@@ -256,8 +267,7 @@ def volcano(data, x, y, padj, label, cutoff=0.05, sample1=None, sample2=None, ax
 
     :param dataframe data: A dataframe resulting from DEG-discovery tool.
     :param str x: Column name denoting log2 fold change.
-    :param str y: Column name denoting p-value.
-        (Note that p-values will be log10-transformed, so they should not be transformed beforehand.)
+    :param str y: Column name denoting p-value. (Note that p-values will be log10-transformed, so they should not be transformed beforehand.)
     :param str padj: Column name denoting adjusted p-value.
     :param str label: Column name denoting gene identifier.
     :param float cutoff: (Optional) Adjusted p-value cutoff value to report significant DEGs.
@@ -283,11 +293,12 @@ def volcano(data, x, y, padj, label, cutoff=0.05, sample1=None, sample2=None, ax
     line = Line2D([0], [0], color='red', lw=2.33, label='Adjusted p < %g' % cutoff)
     plt.legend(handles=[line])
 
-    if (not sample1 is None) and (not sample2 is None):
+    if sample1 is not None and sample2 is not None:
         ax.set_xlabel(r'$log_2$FC ($log_{2}\frac{%s}{%s}$)' % (sample1.replace(' ', '\ '), sample2.replace(' ', '\ ')))
     else:
         ax.set_xlabel(r'$log_2$FC')
     ax.set_ylabel(r'$log_{10}$(p-value)')
+    return ax
 
 
 @_my_plot
@@ -295,8 +306,7 @@ def pca(data, labels=None, ax=None, **kwargs):
     '''Draw a simple principle component analysis plot of the data.
 
     :param matrix data: Input data. Numpy array recommended.
-    :param list labels: (Optional) Corresponding labels to each datum.
-        If specified, data points in the plot will be colored according to the label.
+    :param list labels: (Optional) Corresponding labels to each datum. If specified, data points in the plot will be colored according to the label.
     :param axis ax: (Optional) Matplotlib axis to draw the plot on.
     :param kwargs: Any other keyword arguments will be passed onto matplotlib.pyplot.scatter.
     '''
@@ -306,7 +316,7 @@ def pca(data, labels=None, ax=None, **kwargs):
     pc = pca.transform(data)
 
     if labels is None:
-        plt.scatter(x=pc[:, 0], y=pc[:, 1], **kwargs)
+        ax.scatter(x=pc[:, 0], y=pc[:, 1], **kwargs)
 
     else:
         # If labels are attached, color them in different colors
@@ -314,13 +324,14 @@ def pca(data, labels=None, ax=None, **kwargs):
         for label in set(labels):
             toDraw = (labels == label)  # only draw these points this time
 
-            plt.scatter(x=pc[toDraw, 0], y=pc[toDraw, 1], label=label, **kwargs)
-            plt.legend(loc='best')
+            ax.scatter(x=pc[toDraw, 0], y=pc[toDraw, 1], label=label, **kwargs)
+            ax.legend(loc='best')
 
     # show explained variance ratio in the plot axes
     explainedVarianceRatio = pca.explained_variance_ratio_
-    plt.xlabel('PC1 ({:.2%})'.format(explainedVarianceRatio[0]))
-    plt.ylabel('PC2 ({:.2%})'.format(explainedVarianceRatio[1]))
+    ax.set_xlabel('PC1 ({:.2%})'.format(explainedVarianceRatio[0]))
+    ax.set_ylabel('PC2 ({:.2%})'.format(explainedVarianceRatio[1]))
+    return ax
 
 
 @_my_plot
@@ -328,8 +339,7 @@ def tsne(data, labels=None, ax=None, **kwargs):
     '''Draw a T-SNE analysis plot of the data.
 
     :param matrix data: Input data. Numpy array recommended.
-    :param list labels: (Optional) Corresponding labels to each datum.
-        If specified, data points in the plot will be colored according to the label.
+    :param list labels: (Optional) Corresponding labels to each datum. If specified, data points in the plot will be colored according to the label.
     :param axis ax: (Optional) Matplotlib axis to draw the plot on.
     :param kwargs: Any other keyword arguments will be passed onto matplotlib.pyplot.scatter.
     '''
@@ -338,7 +348,7 @@ def tsne(data, labels=None, ax=None, **kwargs):
     embeddings = tsne.fit(data)
 
     if labels is None:
-        plt.scatter(x=embeddings[:, 0], y=embeddings[:, 1], **kwargs)
+        ax.scatter(x=embeddings[:, 0], y=embeddings[:, 1], **kwargs)
 
     else:
         # If labels are attached, color them in different colors
@@ -346,13 +356,14 @@ def tsne(data, labels=None, ax=None, **kwargs):
         for label in set(labels):
             toDraw = (labels == label)  # only draw these points this time
 
-            plt.scatter(
+            ax.scatter(
                 x=embeddings[toDraw, 0],
                 y=embeddings[toDraw, 1],
                 label=label,
                 **kwargs
             )
-            plt.legend(loc='best')
+            ax.legend(loc='best')
+    return ax
 
 
 @_my_plot
@@ -419,6 +430,7 @@ def mutation_signature(data, ax=None, **kwargs):
     main_axis.set_xticklabels(c_contexts * 3 + t_contexts * 3, rotation=90, fontsize='small', ha='left', va='top', fontdict={'family': 'Dejavu Sans Mono'})
     main_axis.tick_params(axis='x', pad=3)
     main_axis.set_xlim([0, 96])
+    main_axis.spines['top'].set_visible(True)
     main_axis.spines['right'].set_visible(False)
     main_axis.yaxis.set_tick_params(size=5)
     main_axis.set_ylabel('Relative contribution')
@@ -445,6 +457,12 @@ def linear_regression(x, y, regression=True, ax=None, color='k'):
     x_extent = np.array(ax.get_xlim())
     ax.plot(x_extent, slope * x_extent + intercept, lw=1, color=color)
 
-    legend = ax.legend(labels=['$R^2$ = %.3f, p = %.3g' % (r_value ** 2, p_value)], loc='best', fontsize='small', handlelength=0, handletextpad=0, )
+    legend = ax.legend(
+        labels=['$R^2$ = %.3f, p = %.3g' % (r_value ** 2, p_value)],
+        loc='best',
+        fontsize='small',
+        handlelength=0,
+        handletextpad=0
+    )
     for item in legend.legendHandles:
         item.set_visible(False)
