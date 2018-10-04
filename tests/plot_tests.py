@@ -68,3 +68,14 @@ def tsne_test():
         s=5,
         labels=iris['species']
     )
+
+
+def linear_regression_test():
+    x = np.linspace(0, 1, 100)
+    y = 2 * x + 3 + np.random.normal(0, 0.3, len(x))
+
+    ax = plot.get_axis(preset='large')
+    plot.linear_regression(x, y, ax=ax)
+
+    ax = plot.get_axis(preset='medium')
+    plot.linear_regression(x, y, regression=False, ax=ax)
