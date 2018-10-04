@@ -32,6 +32,7 @@ class move_ttf(install):
         import shutil
         import dohlee as doh
         import matplotlib as mpl
+        import matplotlib.font_manager as font_manager
 
         # Find where matplotlib stores its True Type fonts
         mpl_data_dir = os.path.dirname(mpl.matplotlib_fname())
@@ -59,6 +60,7 @@ class move_ttf(install):
                 fontList_path = os.path.join(mpl_cache_dir, font_list_cache_name)
                 os.remove(fontList_path)
                 print("Deleted the matplotlib " + font_list_cache_name)
+
         # except Exception as e:
         #     print(Exception)
         #     warnings.warn("WARNING: An issue occured while installing the custom fonts for dohlee.plot.")

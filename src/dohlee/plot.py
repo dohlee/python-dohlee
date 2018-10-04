@@ -2,7 +2,9 @@ import matplotlib
 matplotlib.use('Agg')
 
 import sys
+import os
 import itertools
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
@@ -15,6 +17,7 @@ from matplotlib.lines import Line2D
 from collections import Counter
 from functools import wraps
 from fastTSNE import TSNE
+from urllib import request
 
 
 def _get_ax_to_draw(ax, figsize=None):
@@ -91,6 +94,18 @@ def set_suptitle(title):
 def set_style(style='white', palette='deep', context='talk', font='FreeSans', font_scale=1.00, rcparams={'figure.figsize': (11.7, 8.27)}):
     """Set plot preference in a way that looks good to me.
     """
+    import matplotlib.font_manager as font_manager
+
+    styles = plt.style.available
+    if 'dohlee' not in styles:
+        request.urlretrieve('https://sgp1.digitaloceanspaces.com/dohlee-bioinfo/dotfiles/dohlee.mplstyle', os.path.join(mpl.get_configdir(), 'dohlee.mplstyle'))
+    plt.style.use('dohlee')
+
+    mpl_data_dir = os.path.dirname(mpl.matplotlib_fname())
+    font_files = font_manager.findSystemFonts(os.path.join(mpl_data_dir, 'fonts', 'ttf'))
+    font_list = font_manager.createFontList(font_files)
+    font_manager.fontManager.ttflist.extend(font_list)
+
     sns.set(style=style,
             palette=palette,
             context=context,
@@ -426,6 +441,6 @@ def linear_regression(x, y, regression=True, ax=None, color='k'):
 
     ax.scatter(x, y, s=5, color=color)
 
-    legend = ax.legend(labels=['$R^2$ = %.3f, p = %.3g' % (r_value ** 2, p_value)], loc='best', fontsize='xx-small', handlelength=0, handletextpad=0, )
+    legend = ax.legend(labels=['$R^2$ = %.3f, p = %.3g' % (r_value ** 2, p_value)], loc='best', fontsize='small', handlelength=0, handletextpad=0, )
     for item in legend.legendHandles:
         item.set_visible(False)
