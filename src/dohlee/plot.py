@@ -99,7 +99,6 @@ def set_style(style='white', palette='deep', context='talk', font='FreeSans', fo
     styles = plt.style.available
     if 'dohlee' not in styles:
         request.urlretrieve('https://sgp1.digitaloceanspaces.com/dohlee-bioinfo/dotfiles/dohlee.mplstyle', os.path.join(mpl.get_configdir(), 'dohlee.mplstyle'))
-    plt.style.use('dohlee')
 
     mpl_data_dir = os.path.dirname(mpl.matplotlib_fname())
     font_files = font_manager.findSystemFonts(os.path.join(mpl_data_dir, 'fonts', 'ttf'))
@@ -112,7 +111,7 @@ def set_style(style='white', palette='deep', context='talk', font='FreeSans', fo
             font=font,
             font_scale=font_scale,
             rc=rcparams)
-
+    plt.style.use('dohlee')
 
 def get_axis(preset=None, figsize=None, transpose=False, dpi=300):
     """Get plot axis with predefined/user-defined width and height.
