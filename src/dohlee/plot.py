@@ -435,10 +435,9 @@ def linear_regression(x, y, regression=True, ax=None, color='k'):
     # Perform linear regression.
     slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
 
+    ax.scatter(x, y, s=5, color=color)
     x_extent = np.array(ax.get_xlim())
     ax.plot(x_extent, slope * x_extent + intercept, lw=1, color=color)
-
-    ax.scatter(x, y, s=5, color=color)
 
     legend = ax.legend(labels=['$R^2$ = %.3f, p = %.3g' % (r_value ** 2, p_value)], loc='best', fontsize='small', handlelength=0, handletextpad=0, )
     for item in legend.legendHandles:
