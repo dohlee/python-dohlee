@@ -4,6 +4,7 @@ matplotlib.use('Agg')
 import sys
 import os
 import itertools
+import dohlee.anaylsis as analysis
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -466,3 +467,46 @@ def linear_regression(x, y, regression=True, ax=None, color='k'):
     )
     for item in legend.legendHandles:
         item.set_visible(False)
+
+
+@_my_plot
+def m_bias(mbias_data, ax=None):
+    mbias_data['CpG Methylation (%)'] = mbias_data.apply(axis=1, func=lambda row: row.nMethylated / (row.nMethylated + row.nUnmethylated) * 100)
+    
+    fig = plt.figure(figsize=(8.4 * 2.2, 8.4), dpi=300)
+
+    commands = []
+    for ax_ind, strand in enumerate(['OT', 'OB'], 1):
+        bounds = []
+
+        ax = fig.add_subplot(1, 2, ax_ind)
+        ax.set_ylim([0, max(70, max(mbias_data['CpG Methylation (%)']))])
+        ax.set_title(strand, fontsize='x-large')
+        ax.set_xlabel('Position along mapped read')
+        ax.set_ylabel('CpG Methylation (%)')
+
+        tmp = mbias_data[(mbias_data.Strand == strand)]
+        for read in tmp.Read.unique():
+            this_data = tmp[tmp.Read == read]
+
+            x = this_data['Position'].values
+            y = this_data['CpG Methylation (%)'].values
+            ax.plot(x, y, lw=1, label='Read %d' % read)
+            ax.set_xlim([0, max(x)])
+
+            for i in range(0, max(x), 10):
+                ax.axvline(x=i, linestyle='--', linewidth=0.66, color='grey', alpha=0.33)
+
+            lower_bound, upper_bound, cis = analysis._get_inclusion_bounds(this_data)
+            ax.axvline(x=lower_bound, linestyle='--', linewidth=1, color='red', alpha=0.66)
+            ax.axvline(x=upper_bound, linestyle='--', linewidth=1, color='red', alpha=0.66)
+
+            ax.legend(fontsize='large', loc='best')
+
+            bounds.append(lower_bound)
+            bounds.append(upper_bound)
+
+        if len(bounds) == 2:
+            for _ in range(2):
+                bounds.append(0)
+        commands.append('--%s %s' % (strand, ','.join(map(str, bounds))))

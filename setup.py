@@ -141,6 +141,7 @@ setup(
     entry_points={
         'console_scripts': [
             'dohlee = dohlee.cli:main',
+            'methyldackel-extract-bounds = dohlee.analysis:methyldackel_extract_bounds'
         ]
     },
     package_data={
