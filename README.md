@@ -54,34 +54,34 @@ plot.frequency(data, ax=ax, xlabel='Your numbers', ylabel='Frequency')
 
 ***dohlee.plot.tsne***
 ```python
-    ax = plot.get_axis(preset='wide')
-    plot.tsne(
-        iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']],
-        ax=ax,
-        s=5,
-        labels=iris['species']
-    )
+ax = plot.get_axis(preset='wide')
+plot.tsne(
+    iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']],
+    ax=ax,
+    s=5,
+    labels=iris['species']
+)
 ```
 <p align='center'><img src='img/tsne.png'></p>
 
 ***dohlee.plot.stacked_bar_chart***
 ```python
+# Generate sample data.
 n_samples = 100
 sample_dict = {'Sample': ['S%d' % i for i in range(1, n_samples + 1)]}
 value_dict = {c: np.random.randint(0, 100, size=n_samples) for c in ['Missense', 'Nonsense', 'Silent']}
 test_data = pd.DataFrame({**sample_dict, **value_dict})
-ax = plot.get_axis(figsize=(14.4, 3.4))
+# Plot stacked bar chart.
 plot.stacked_bar_chart(
     data=test_data,          
     x='Sample',
     y=['Missense', 'Nonsense', 'Silent'],
-    ax=ax,
+    ax=plot.get_axis(figsize=(14.4, 3.4)),
     xticklabels=False,
     sort=True,
     ylabel='Number of mutations',
     xlabel='Sample',
     legend_size='xx-large')
-plot.save('code/python-dohlee/img/stacked_bar_chart.png')
 ```
 <p align='center'><img src='img/stacked_bar_chart.png'></p>
 
