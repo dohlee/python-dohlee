@@ -4,7 +4,7 @@ matplotlib.use('Agg')
 import sys
 import os
 import itertools
-import dohlee.anaylsis as analysis
+import dohlee.analysis as analysis
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -81,7 +81,35 @@ def _my_plot(func):
         file_path = kwargs.get('file', None)
         if 'file' in kwargs:
             del kwargs['file']
-        result = func(*args, ax=ax, **kwargs)
+
+        rotate_xticklabels = kwargs.get('rotate_xticklabels', 0)
+        if 'rotate_xticklabels' in kwargs:
+            del kwargs['rotate_xticklabels']
+
+        xticklabels = kwargs.get('xticklabels', True)
+        if 'xticklabels' in kwargs:
+            del kwargs['xticklabels']
+
+        legend_size = kwargs.get('legend_size', None)
+        if 'legend_size' in kwargs:
+            del kwargs['legend_size']
+
+        ax_result = func(*args, ax=ax, **kwargs)
+        if rotate_xticklabels:
+            ax_result.set_xticklabels(
+                ax_result.get_xticklabels(),
+                ha='right',
+                rotation=rotate_xticklabels,
+            )
+
+        if not xticklabels:
+            ax.set_xticks([])
+            ax.set_xlabel(ax.get_xlabel(), labelpad=7.0)
+
+        if legend_size is not None:
+            handles, labels = ax.get_legend_handles_labels()
+            ax.legend(handles, labels, prop={'size': legend_size})
+
         _try_save(file_path)
     return wrapper
 
@@ -472,7 +500,7 @@ def linear_regression(x, y, regression=True, ax=None, color='k'):
 @_my_plot
 def m_bias(mbias_data, ax=None):
     mbias_data['CpG Methylation (%)'] = mbias_data.apply(axis=1, func=lambda row: row.nMethylated / (row.nMethylated + row.nUnmethylated) * 100)
-    
+
     fig = plt.figure(figsize=(8.4 * 2.2, 8.4), dpi=300)
 
     commands = []
@@ -510,3 +538,36 @@ def m_bias(mbias_data, ax=None):
             for _ in range(2):
                 bounds.append(0)
         commands.append('--%s %s' % (strand, ','.join(map(str, bounds))))
+
+
+@_my_plot
+def stacked_bar_chart(data, x, y, ax=None, sort=False, reverse=True):
+    """TODO
+    """
+    ax = _get_ax_to_draw(ax)
+    ax.margins(x=5e-3)
+    x_values = data[x].values
+    y_values = data[y].values.T
+    bottoms = data[y].values.cumsum(axis=1).T
+    if sort:
+        order_mask = np.argsort(data[y].values.sum(axis=1))
+        if reverse:
+            order_mask = order_mask[::-1]
+        x_values = x_values[order_mask]
+        y_values = y_values[:, order_mask]
+        bottoms = bottoms[:, order_mask]
+
+
+    x_positions = np.arange(len(x_values))
+
+    ax.bar(x_positions, y_values[0], label=y[0])
+    for i in range(1, len(y_values)):
+        ax.bar(x_positions, y_values[i], bottom=bottoms[i-1], label=y[i])
+
+    ax.legend()
+    ax.set_xticks(x_positions)
+    ax.set_xticklabels(x_values)
+
+    ax.set_ylim([0, ax.get_ylim()[1]])
+    ax.tick_params('y', length=5, width=1, which='major')
+    return ax

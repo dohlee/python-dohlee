@@ -4,6 +4,7 @@ from collections import Counter
 
 import itertools
 import numpy as np
+import pandas as pd
 
 iris = sns.load_dataset('iris')
 
@@ -79,3 +80,93 @@ def linear_regression_test():
 
     ax = plot.get_axis(preset='medium')
     plot.linear_regression(x, y, regression=False, ax=ax)
+
+
+def stacked_bar_chart_basic_test():
+    test_data = pd.DataFrame({
+        'Sample': ['S1', 'S2', 'S3'],
+        'A': [5, 2, 8],
+        'B': [2, 1, 5],
+        'C': [1, 4, 2],
+    })
+    plot.stacked_bar_chart(data=test_data, x='Sample', y=['A', 'B', 'C'])
+
+
+def stacked_bar_chart_sort_test():
+    test_data = pd.DataFrame({
+        'Sample': ['S1', 'S2', 'S3'],
+        'A': [1, 3, 5],
+        'B': [2, 4, 1],
+        'C': [3, 8, 4],
+    })
+    plot.stacked_bar_chart(data=test_data, x='Sample', y=['A', 'B', 'C'], sort=True)
+
+
+def stacked_bar_chart_sort_ascending_test():
+    test_data = pd.DataFrame({
+        'Sample': ['S1', 'S2', 'S3'],
+        'A': [1, 3, 5],
+        'B': [2, 4, 1],
+        'C': [3, 8, 4],
+    })
+    plot.stacked_bar_chart(data=test_data, x='Sample', y=['A', 'B', 'C'], sort=True, reverse=False)
+
+
+def stacked_bar_chart_single_y_test():
+    test_data = pd.DataFrame({
+        'Sample': ['S1', 'S2', 'S3'],
+        'A': [1, 3, 5],
+        'B': [2, 4, 1],
+        'C': [3, 8, 4],
+    })
+    plot.stacked_bar_chart(data=test_data, x='Sample', y=['A'])
+
+
+def stacked_bar_chart_rotate_xticklabels_test():
+    test_data = pd.DataFrame({
+        'Sample': ['Loooooong label 1', 'Loooooong label 2', 'Loooooong label 3'],
+        'A': [1, 3, 5],
+        'B': [2, 4, 1],
+        'C': [3, 8, 4],
+    })
+    plot.stacked_bar_chart(data=test_data, x='Sample', y=['A', 'B', 'C'], rotate_xticklabels=33)
+
+
+def stacked_bar_chart_hide_xticklabels_test():
+    test_data = pd.DataFrame({
+        'Sample': ['Loooooong label 1', 'Loooooong label 2', 'Loooooong label 3'],
+        'A': [1, 3, 5],
+        'B': [2, 4, 1],
+        'C': [3, 8, 4],
+    })
+    plot.stacked_bar_chart(data=test_data, x='Sample', y=['A', 'B', 'C'], xticklabels=False)
+
+
+def legend_size_small_test():
+    test_data = pd.DataFrame({
+        'Sample': ['Loooooong label 1', 'Loooooong label 2', 'Loooooong label 3'],
+        'A': [1, 3, 5],
+        'B': [2, 4, 1],
+        'C': [3, 8, 4],
+    })
+    plot.stacked_bar_chart(data=test_data, x='Sample', y=['A', 'B', 'C'], legend_size='small')
+
+
+def legend_size_medium_test():
+    test_data = pd.DataFrame({
+        'Sample': ['Loooooong label 1', 'Loooooong label 2', 'Loooooong label 3'],
+        'A': [1, 3, 5],
+        'B': [2, 4, 1],
+        'C': [3, 8, 4],
+    })
+    plot.stacked_bar_chart(data=test_data, x='Sample', y=['A', 'B', 'C'], legend_size='medium')
+
+
+def legend_size_large_test():
+    test_data = pd.DataFrame({
+        'Sample': ['Loooooong label 1', 'Loooooong label 2', 'Loooooong label 3'],
+        'A': [1, 3, 5],
+        'B': [2, 4, 1],
+        'C': [3, 8, 4],
+    })
+    plot.stacked_bar_chart(data=test_data, x='Sample', y=['A', 'B', 'C'], legend_size='large')
