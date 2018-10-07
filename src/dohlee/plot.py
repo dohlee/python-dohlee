@@ -53,6 +53,11 @@ def save(file, dpi=300, tight_layout=True):
     plt.savefig(file, dpi=dpi)
 
 
+def clear():
+    """Clear the plot.
+    """
+    plt.clf()
+
 def _my_plot(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
