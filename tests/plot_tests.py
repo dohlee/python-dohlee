@@ -1,6 +1,5 @@
 import dohlee.plot as plot; plot.set_style()
 import itertools
-import os
 import tempfile
 
 import numpy as np
@@ -226,3 +225,53 @@ def legend_size_large_test():
         'C': [3, 8, 4],
     })
     plot.stacked_bar_chart(data=test_data, x='Sample', y=['A', 'B', 'C'], legend_size='large')
+
+
+@with_setup(setup_function, teardown_function)
+def legend_title_test():
+    test_data = pd.DataFrame({
+        'Sample': ['Loooooong label 1', 'Loooooong label 2', 'Loooooong label 3'],
+        'A': [1, 3, 5],
+        'B': [2, 4, 1],
+        'C': [3, 8, 4],
+    })
+    plot.stacked_bar_chart(data=test_data, x='Sample', y=['A', 'B', 'C'], legend_title='Mutation type')
+
+
+@with_setup(setup_function, teardown_function)
+def umap_test():
+    iris = sns.load_dataset('iris')
+    ax = plot.get_axis(preset='wide')
+    plot.umap(
+        iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']],
+        ax=ax,
+        s=5,
+        labels=iris['species']
+    )
+
+
+@with_setup(setup_function, teardown_function)
+def pca_with_no_xyticklabels_test():
+    iris = sns.load_dataset('iris')
+    ax = plot.get_axis(figsize=(8.4, 8.4))
+    plot.pca(
+        data=iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']],
+        labels=iris.species,
+        s=5,
+        ax=ax,
+        xticklabels=False,
+        yticklabels=False,
+    )
+
+
+@with_setup(setup_function, teardown_function)
+def dimensionality_reduction():
+    iris = sns.load_dataset('iris')
+    ax = plot.get_axis(figsize=(8.4 * 3, 8.4))
+    plot.dimensionality_reduction(
+        data=iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']],
+        labels=iris.species,
+        ax=ax,
+        xticklabels=False,
+        yticklabels=False,
+    )

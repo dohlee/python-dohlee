@@ -11,3 +11,4 @@ pyensembl>=1.2.6
 tqdm>=4.23.0
 adjustText>=0.7.3
 alabaster==0.7.8
+umap-learn>=0.3.4

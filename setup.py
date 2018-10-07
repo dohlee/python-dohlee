@@ -132,6 +132,7 @@ setup(
         'tqdm>=4.23.0',
         'adjustText>=0.7.3',
         # 'fastTSNE>=0.2.6',
+        'umap-learn>=0.3.4',
     ],
     extras_require={
         # eg:

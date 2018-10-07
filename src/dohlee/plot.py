@@ -19,6 +19,7 @@ from collections import Counter
 from functools import wraps
 from fastTSNE import TSNE
 from urllib import request
+from umap import UMAP
 
 
 def _get_ax_to_draw(ax, figsize=None):
@@ -57,6 +58,8 @@ def clear():
     """Clear the plot.
     """
     plt.clf()
+    plt.close()
+
 
 def _my_plot(func):
     @wraps(func)
@@ -95,9 +98,17 @@ def _my_plot(func):
         if 'xticklabels' in kwargs:
             del kwargs['xticklabels']
 
+        yticklabels = kwargs.get('yticklabels', True)
+        if 'yticklabels' in kwargs:
+            del kwargs['yticklabels']
+
         legend_size = kwargs.get('legend_size', None)
         if 'legend_size' in kwargs:
             del kwargs['legend_size']
+
+        legend_title = kwargs.get('legend_title', None)
+        if 'legend_title' in kwargs:
+            del kwargs['legend_title']
 
         ax_result = func(*args, ax=ax, **kwargs)
         if rotate_xticklabels:
@@ -111,11 +122,16 @@ def _my_plot(func):
             ax.set_xticks([])
             ax.set_xlabel(ax.get_xlabel(), labelpad=7.0)
 
-        if legend_size is not None:
+        if not yticklabels:
+            ax.set_yticks([])
+            ax.set_ylabel(ax.get_ylabel(), labelpad=7.0)
+
+        if legend_size is not None or legend_title is not None:
             handles, labels = ax.get_legend_handles_labels()
-            ax.legend(handles, labels, prop={'size': legend_size})
+            ax.legend(handles, labels, prop={'size': legend_size}, title=legend_title)
 
         _try_save(file_path)
+        return ax_result
     return wrapper
 
 
@@ -198,6 +214,20 @@ def get_axis(preset=None, figsize=None, transpose=False, dpi=300):
     fig = plt.figure(figsize=(w, h), dpi=dpi)
     ax = fig.add_subplot(111)
     return ax
+
+
+@_my_plot
+def get_grid(shape=(1, 1), ax=None, hspace=None, wspace=None):
+    """TODO
+    """
+    subplotspec = ax.get_subplotspec()
+    return subplotspec.subgridspec(*shape, hspace=hspace, wspace=wspace)
+
+
+def get_axis_from_grid(grid):
+    """TODO
+    """
+    return plt.subplot(grid)
 
 
 @_my_plot
@@ -576,3 +606,55 @@ def stacked_bar_chart(data, x, y, ax=None, sort=False, reverse=True):
     ax.set_ylim([0, ax.get_ylim()[1]])
     ax.tick_params('y', length=5, width=1, which='major')
     return ax
+
+
+@_my_plot
+def umap(data, labels=None, ax=None, **kwargs):
+    '''Draw a UMAP embedding plot of the data.
+
+    :param matrix data: Input data. Numpy array recommended.
+    :param list labels: (Optional) Corresponding labels to each datum. If specified, data points in the plot will be colored according to the label.
+    :param axis ax: (Optional) Matplotlib axis to draw the plot on.
+    :param kwargs: Any other keyword arguments will be passed onto matplotlib.pyplot.scatter.
+    '''
+    # Apply UMAP and get embeddings.
+    reducer = UMAP()
+    embeddings = reducer.fit_transform(data)
+
+    if labels is None:
+        ax.scatter(x=embeddings[:, 0], y=embeddings[:, 1], **kwargs)
+
+    else:
+        # If labels are attached, color them in different colors
+        labels = np.array(labels)
+        for label in set(labels):
+            toDraw = (labels == label)  # only draw these points this time
+
+            ax.scatter(
+                x=embeddings[toDraw, 0],
+                y=embeddings[toDraw, 1],
+                label=label,
+                **kwargs
+            )
+            ax.legend(loc='best')
+    return ax
+
+
+@_my_plot
+def dimensionality_reduction(data, labels, ax=None):
+    ax = get_axis(figsize=(20, 4))
+    grid = get_grid((1, 5), ax=ax)
+    axes = [get_axis_from_grid(grid[i]) for i in range(5)]
+
+    common_args = dict(
+        data=data,
+        labels=labels,
+        # FIXME: HARD-CODED legend size.
+        legend_size='medium',
+        xticklabels=False,
+        yticklabels=False,
+    )
+
+    plot.pca(ax=axes[0], title='PCA', **common_args)
+    plot.tsne(ax=axes[1], title='T-SNE', **common_args)
+    plot.umap(ax=axes[2], title='UMAP', **common_args)
