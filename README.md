@@ -85,6 +85,17 @@ plot.stacked_bar_chart(
 ```
 <p align='center'><img src='img/stacked_bar_chart.png'></p>
 
+***dohlee.plot.linear_regression***
+```python
+ax = plot.get_axis(preset='wide')
+
+x = np.linspace(0, 1, 100)
+y = 2 * x + 3 + np.random.normal(0, 0.3, len(x))
+
+plot.linear_regression(x, y, ax=ax)
+```
+<h2 align='center'><img src='img/linear_regression.png' /></h2>
+
 <h2 align='center'>Development</h2>
 
 Since this package is updated as needed when I'm doing my research, the development process fits well with TDD cycle.

@@ -265,7 +265,7 @@ def pca_with_no_xyticklabels_test():
 
 
 @with_setup(setup_function, teardown_function)
-def dimensionality_reduction():
+def dimensionality_reduction_test():
     iris = sns.load_dataset('iris')
     ax = plot.get_axis(figsize=(8.4 * 3, 8.4))
     plot.dimensionality_reduction(
@@ -274,4 +274,15 @@ def dimensionality_reduction():
         ax=ax,
         xticklabels=False,
         yticklabels=False,
+    )
+
+
+@with_setup(setup_function, teardown_function):
+def line_test():
+    fmri = sns.load_dataset('fmri')
+    ax = plot.get_axis(preset='wide')
+    plot.line(
+        data=fmri,
+        x='timepoint',
+        y='signal',
     )
