@@ -491,7 +491,7 @@ def mutation_signature(data, ax=None, **kwargs):
 
     xticklabel_dx = 0.11
     main_axis.set_xticks(np.arange(0, 96, 1) + xticklabel_dx)
-    main_axis.set_xticklabels(c_contexts * 3 + t_contexts * 3, rotation=90, fontsize='small', ha='left', va='top', fontdict={'family': 'Dejavu Sans Mono'})
+    main_axis.set_xticklabels(c_contexts * 3 + t_contexts * 3, rotation=90, fontsize='large', ha='left', va='top', fontdict={'family': 'Dejavu Sans Mono'})
     main_axis.tick_params(axis='x', pad=3)
     main_axis.set_xlim([0, 96])
     main_axis.spines['top'].set_visible(True)
@@ -655,6 +655,26 @@ def dimensionality_reduction(data, labels, ax=None):
         yticklabels=False,
     )
 
-    plot.pca(ax=axes[0], title='PCA', **common_args)
-    plot.tsne(ax=axes[1], title='T-SNE', **common_args)
-    plot.umap(ax=axes[2], title='UMAP', **common_args)
+    pca(ax=axes[0], title='PCA', **common_args)
+    tsne(ax=axes[1], title='T-SNE', **common_args)
+    umap(ax=axes[2], title='UMAP', **common_args)
+
+
+@_my_plot
+def line(y, data=None, x=None, hue=None, ax=None, agg='mean', **kwargs):
+    if data is None:
+        if x is None:
+            ax.plot(y, **kwargs)
+        else:
+            ax.plot(x, y, **kwargs)
+    else:  # `data` is not None.
+        if hue is None:
+            if x is None:
+                ax.plot(data[y], **kwargs)
+            if x is not None:
+                ax.plot(data[x], data[y], **kwargs)
+        else:
+            # `data` is not None, and `hue` is not None.
+            # We should aggregate data by `hue` column and plot each line separately.
+            if x is None:
+                aggregated = data.groupby([hue, x, y]).agg(agg)

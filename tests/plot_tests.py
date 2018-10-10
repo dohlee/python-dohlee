@@ -195,6 +195,18 @@ def stacked_bar_chart_hide_xticklabels_test():
 
 
 @with_setup(setup_function, teardown_function)
+def stacked_bar_chart_group_test():
+    test_data = pd.DataFrame({
+        'Sample': ['S1', 'S2', 'S3', 'S4', 'S5'],
+        'A': [1, 3, 5],
+        'B': [2, 4, 1],
+        'C': [3, 8, 4],
+        'Group': ['G1', 'G2', 'G1', 'G1', 'G2'],
+    })
+    plot.stacked_bar_chart(data=test_data, x='Sample', y=['A', 'B', 'C'], group='Group')
+
+
+@with_setup(setup_function, teardown_function)
 def legend_size_small_test():
     test_data = pd.DataFrame({
         'Sample': ['Loooooong label 1', 'Loooooong label 2', 'Loooooong label 3'],
@@ -277,7 +289,7 @@ def dimensionality_reduction_test():
     )
 
 
-@with_setup(setup_function, teardown_function):
+@with_setup(setup_function, teardown_function)
 def line_test():
     fmri = sns.load_dataset('fmri')
     ax = plot.get_axis(preset='wide')
