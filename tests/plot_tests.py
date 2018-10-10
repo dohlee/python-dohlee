@@ -195,12 +195,24 @@ def stacked_bar_chart_hide_xticklabels_test():
 
 
 @with_setup(setup_function, teardown_function)
+def stacked_bar_chart_sort_by_test():
+    test_data = pd.DataFrame({
+        'Sample': ['S1', 'S2', 'S3', 'S4', 'S5'],
+        'A': [1, 3, 5, 1, 5],
+        'B': [2, 4, 1, 2, 5],
+        'C': [3, 8, 4, 6, 3],
+        'Group': ['G1', 'G2', 'G1', 'G1', 'G2'],
+    })
+    plot.stacked_bar_chart(data=test_data, x='Sample', y=['A', 'B', 'C'], sort=True, sort_by='B')
+
+
+@with_setup(setup_function, teardown_function)
 def stacked_bar_chart_group_test():
     test_data = pd.DataFrame({
         'Sample': ['S1', 'S2', 'S3', 'S4', 'S5'],
-        'A': [1, 3, 5],
-        'B': [2, 4, 1],
-        'C': [3, 8, 4],
+        'A': [1, 3, 5, 1, 5],
+        'B': [2, 4, 1, 2, 5],
+        'C': [3, 8, 4, 6, 3],
         'Group': ['G1', 'G2', 'G1', 'G1', 'G2'],
     })
     plot.stacked_bar_chart(data=test_data, x='Sample', y=['A', 'B', 'C'], group='Group')

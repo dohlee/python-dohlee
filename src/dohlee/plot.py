@@ -13,6 +13,7 @@ import scipy.stats as stats
 import seaborn as sns
 
 from adjustText import adjust_text
+from collections import Counter
 from sklearn.decomposition import PCA
 from matplotlib.lines import Line2D
 from collections import Counter
@@ -576,37 +577,82 @@ def m_bias(mbias_data, ax=None):
 
 
 @_my_plot
-def stacked_bar_chart(data, x, y, ax=None, sort=False, reverse=True):
+def stacked_bar_chart(data, x, y, ax=None, sort=False, reverse=True, sort_by=None, group=None, group_order=None, group_label=True):
     """TODO
     """
     ax = _get_ax_to_draw(ax)
     ax.margins(x=5e-3)
+    if not isinstance(y, list):
+        y = list(y)
+
     x_values = data[x].values
     y_values = data[y].values.T
     bottoms = data[y].values.cumsum(axis=1).T
+    x_positions = np.arange(len(x_values))
+
+    if group:
+        groups = data[group].values
     if sort:
-        order_mask = np.argsort(data[y].values.sum(axis=1))
+        if sort_by is None:
+            # If sort_by parameter is not specified, sort by the sum of the heights of stacked bars.
+            order_mask = np.argsort(data[y].values.sum(axis=1))
+        else:
+            assert sort_by in y, 'Column name in sort_by parameter should appear in y parameter.'
+            order_mask = np.argsort(data[sort_by].values)
         if reverse:
             order_mask = order_mask[::-1]
         x_values = x_values[order_mask]
         y_values = y_values[:, order_mask]
         bottoms = bottoms[:, order_mask]
+        if group:
+            groups = groups[order_mask]
 
+    if group is not None:
+        group_mask = []
+        group_count = Counter()
 
-    x_positions = np.arange(len(x_values))
+        group_order = group_order if group_order is not None else data[group].unique()
+        for g in group_order:
+            for i, g_tmp in enumerate(groups):
+                if g_tmp == g:
+                    group_count[g] += 1
+                    group_mask.append(i)
+
+        # Sort x_values, y_values and bottoms to reflect group assignments.
+        # Convert to list to use `insert` method.
+        x_values = list(x_values[group_mask])
+        y_values = y_values[:, group_mask]
+        bottoms = bottoms[:, group_mask]
+
+        # Insert empty space between each of the two groups.
+        insert_index = 0
+        group_label_position = []
+        for i, g in enumerate(group_order):
+            group_label_position.append(insert_index + group_count[g] / 2)
+            insert_index += group_count[g]
+            x_values.insert(insert_index, '')
+            num_rows = y_values.shape[0]
+            y_values = np.hstack([y_values[:, :insert_index], np.zeros((num_rows, 1)), y_values[:, insert_index:]])
+            bottoms = np.hstack([bottoms[:, :insert_index], np.zeros((num_rows, 1)), bottoms[:, insert_index:]])
+            insert_index += 1
+
+        x_positions = np.arange(len(x_values))
 
     ax.bar(x_positions, y_values[0], label=y[0])
     for i in range(1, len(y_values)):
         ax.bar(x_positions, y_values[i], bottom=bottoms[i-1], label=y[i])
 
     ax.legend()
-    ax.set_xticks(x_positions)
-    ax.set_xticklabels(x_values)
+    if group is not None and group_label:
+        ax.set_xticks(group_label_position)
+        ax.set_xticklabels(group_order, ha='center')
+    else:
+        ax.set_xticks(x_positions)
+        ax.set_xticklabels(x_values)
 
     ax.set_ylim([0, ax.get_ylim()[1]])
     ax.tick_params('y', length=5, width=1, which='major')
     return ax
-
 
 @_my_plot
 def umap(data, labels=None, ax=None, **kwargs):
