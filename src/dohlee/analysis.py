@@ -5,6 +5,8 @@ import pybedtools
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
+from collections import defaultdict
 from dohlee import bed as bed_util
 from dohlee import util
 from dohlee import plot
@@ -92,7 +94,7 @@ def methyldackel_extract_bounds():
     print(' '.join(commands))
 
 
-def default_get_bin(pos, start, end, outer_bin_size=50, inner_bin_count=100):
+def default_get_bin(pos, start, end, bp_extension, outer_bin_size=50, inner_bin_count=100):
     if start <= pos < start + bp_extension[0]:
         x = pos - start
         bin_number = x // outer_bin_size
@@ -111,19 +113,37 @@ def aggregate_methylation_landscapes(
     methylation_bed_fps,
     condition_fp,
     bp_extension,
-    tmp_file_dir,
+    temp_file_dir,
     SAMPLE_NAME_COL,
-    POS_COL,
-    METH_LEVEL_COL,
-    BIN_COL,
     CONDITION_COL,
+    POS_COL='Position',
+    METH_LEVEL_COL='Methylation level',
+    BIN_COL='Bin',
     binning_func=None,
     outer_bin_size=50,
     inner_bin_count=100,
     extension_direction='both',
     threads=4,
+    threaded_kws={'progress': False},
 ):
-    """TODO
+    """Plot averaged methylation values across the regions which are annotated in the bed file.
+    TODO: Make aggregation methods can be chosen. e.g. 'mean', 'median', 'min', 'max', ...
+    
+    :param str annotation_bed_fp: Path to a BED file defining the region of interest.
+    :param list methylation_bed_fps: A list of paths of BED files defining the meth-level of each CpG position. 
+    :param str condition_fp: Path to a two-column file which represents conditions of samples.
+    :param str temp_file_dir: Path to a directory to save caches.
+    :param str SAMPLE_NAME_COL: Name of the column denoting IDs of samples.
+    :param str CONDITION_COL: Name of the column denoting conditions of samples.
+    :param str POS_COL: (default='Position') Name of the column denoting CpG positions.
+    :param str METH_LEVEL_COL: (default='Methylation level') Name of the column denoting methylation levels.
+    :param str BIN_COL: (default='Bin') Name of the column denoting bins.
+    :param func binning_func: If possible, pass custom function that represents your binning strategy.
+    :param int outer_bin_size: Size of each bin in outer extended regions.
+    :param int inner_bin_count: Number of bins in inner regions, which are originally defined in the annotation BED file.
+    :param str extension_direction: Extend view toward 'both'/'up'/'down' direction.
+    :param int threads: Number of threads to use.
+    :param dict threaded_kws: Keyword arguments passed to dohlee.threaded function.
     """
     if binning_func is None:
         binning_func = default_get_bin
@@ -134,10 +154,10 @@ def aggregate_methylation_landscapes(
 
     # Sort and extend annotations with specified bp.
     ann_bed = pybedtools.BedTool(annotation_bed_fp).sort()
-    extended_ann_bed = bed_util.extend_bed(annotation_bed, bp=bp_extension, direction=extension_direction)
+    extended_ann_bed = bed_util.extend_bed(ann_bed, bp=bp_extension, direction=extension_direction)
 
-    params = [(bed, extended_ann_bed, temp_file_dir, binning_func, SAMPLE_NAME_COL, POS_COL, METH_LEVEL_COL, BIN_COL) for bed in methylation_bed_fps]
-    aggregated_dfs = list(threaded(func=aggregate_intersecting_methylation_levels, params=params, processes=threads, progress=True))
+    params = [(bed, extended_ann_bed, temp_file_dir, binning_func, bp_extension, outer_bin_size, inner_bin_count, SAMPLE_NAME_COL, POS_COL, METH_LEVEL_COL, BIN_COL) for bed in methylation_bed_fps]
+    aggregated_dfs = list(threaded(func=aggregate_intersecting_methylation_levels, params=params, processes=threads, **threaded_kws))
     concat_df = pd.concat(aggregated_dfs)
     final_df = concat_df.merge(condition, on=SAMPLE_NAME_COL, how='inner')
 
@@ -158,19 +178,22 @@ def aggregate_methylation_landscapes(
 def aggregate_intersecting_methylation_levels(
     methylation_bed_fp,
     extended_ann_bed,
-    tmp_file_dir,
+    temp_file_dir,
     binning_func,
+    bp_extension,
+    outer_bin_size,
+    inner_bin_count,
     SAMPLE_NAME_COL,
     POS_COL,
     METH_LEVEL_COL,
     BIN_COL,
 ):
-    name = pathutil.splitext(methylation_bed_fp)
-    tmp_file = os.path.join(temp_file_dir, '%s_tmp.bed' % sample_name)
+    sample_name = util.strip_ext(methylation_bed_fp)
+    temp_file = os.path.join(temp_file_dir, '%s_aggregated.tsv' % sample_name)
 
-    if not os.path.exists(tmp_file):
+    if not os.path.exists(temp_file):
         methylation_bed = pybedtools.BedTool(methylation_bed_fp).sort()
-        intersection_bed = methylation_bed.intersect(extended_ann_bed, log=True) \
+        intersection_bed = methylation_bed.intersect(extended_ann_bed, loj=True) \
                                           .filter(lambda iv: iv.fields[6] != '.') \
                                           .saveas(os.path.join(temp_file_dir, '%s_tmp.bed' % sample_name))
 
@@ -182,17 +205,25 @@ def aggregate_intersecting_methylation_levels(
         }
 
         for interval in intersection_bed:
-            data[SAMPLE_NAME_COL].append(name)
+            # Start and end position of the overlapping annotation interval.
+            start, end = int(interval.fields[7]), int(interval.fields[8])
+
+            data[SAMPLE_NAME_COL].append(sample_name)
             data[POS_COL].append(interval.start)
             data[METH_LEVEL_COL].append(interval.score)
-            data[BIN_COL].append(get_bin(interval.start, int(interval.fields[7]), int(interval.fields[8])))
+            data[BIN_COL].append(binning_func(interval.start, start, end, bp_extension, outer_bin_size, inner_bin_count))
 
         data = pd.DataFrame(data)
         data[METH_LEVEL_COL] = data[METH_LEVEL_COL].astype(np.float32)
-        data.to_csv(temp_file, sep='\t', index=False)
+        data.to_csv(temp_file, sep='\t', index=False, header=True)
     else:
-        data = pd.read_table(tmp_file)
+        data = pd.read_table(temp_file)
+        assert SAMPLE_NAME_COL in data.columns.values
 
-    aggregated = data.groupby([BIN_COL]).mean()
+    aggregated = data.groupby([BIN_COL]).agg({
+        SAMPLE_NAME_COL: 'first',
+        POS_COL: 'first',
+        METH_LEVEL_COL: 'mean',
+    })
     aggregated[BIN_COL] = aggregated.index
     return aggregated
