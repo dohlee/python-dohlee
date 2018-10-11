@@ -535,6 +535,8 @@ def linear_regression(x, y, regression=True, ax=None, color='k'):
 
 @_my_plot
 def m_bias(mbias_data, ax=None):
+    """TODO
+    """
     mbias_data['CpG Methylation (%)'] = mbias_data.apply(axis=1, func=lambda row: row.nMethylated / (row.nMethylated + row.nUnmethylated) * 100)
 
     fig = plt.figure(figsize=(8.4 * 2.2, 8.4), dpi=300)

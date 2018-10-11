@@ -1,7 +1,15 @@
+import os
 import sys
+import pybedtools
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from dohlee import bed as bed_util
+from dohlee import util
+from dohlee import plot
+
+from dohlee.thread import threaded
 
 def _confidence_interval(meth, unmeth):
     """Compute Agresti-Coull confidence interval.
@@ -82,3 +90,109 @@ def methyldackel_extract_bounds():
         commands.append('--%s %s' % (strand, ','.join(map(str, bounds))))
 
     print(' '.join(commands))
+
+
+def default_get_bin(pos, start, end, outer_bin_size=50, inner_bin_count=100):
+    if start <= pos < start + bp_extension[0]:
+        x = pos - start
+        bin_number = x // outer_bin_size
+    elif start + bp_extension[0] <= pos < end - bp_extension[1]:
+        binsize = (end - start - sum(bp_extension)) // inner_bin_count
+        x = pos - (start + bp_extension[0])
+        bin_number = x // binsize + bp_extension[0] // outer_bin_size
+    else:
+        x = end - pos
+        bin_number = x // outer_bin_size + bp_extension[0] + inner_bin_count
+    return bin_number
+
+
+def aggregate_methylation_landscapes(
+    annotation_bed_fp,
+    methylation_bed_fps,
+    condition_fp,
+    bp_extension,
+    tmp_file_dir,
+    SAMPLE_NAME_COL,
+    POS_COL,
+    METH_LEVEL_COL,
+    BIN_COL,
+    CONDITION_COL,
+    binning_func=None,
+    outer_bin_size=50,
+    inner_bin_count=100,
+    extension_direction='both',
+    threads=4,
+):
+    """TODO
+    """
+    if binning_func is None:
+        binning_func = default_get_bin
+
+    condition = pd.read_table(condition_fp)
+    assert SAMPLE_NAME_COL in condition.columns.values, \
+        'Column representing sample names %s is not in condition file.' % SAMPLE_NAME_COL
+
+    # Sort and extend annotations with specified bp.
+    ann_bed = pybedtools.BedTool(annotation_bed_fp).sort()
+    extended_ann_bed = bed_util.extend_bed(annotation_bed, bp=bp_extension, direction=extension_direction)
+
+    params = [(bed, extended_ann_bed, temp_file_dir, binning_func, SAMPLE_NAME_COL, POS_COL, METH_LEVEL_COL, BIN_COL) for bed in methylation_bed_fps]
+    aggregated_dfs = list(threaded(func=aggregate_intersecting_methylation_levels, params=params, processes=threads, progress=True))
+    concat_df = pd.concat(aggregated_dfs)
+    final_df = concat_df.merge(condition, on=SAMPLE_NAME_COL, how='inner')
+
+    # Draw plot.
+    plt.style.use('dohlee')
+    ax = plot.get_axis(preset='wide')
+
+    condition_mean_val_dict = defaultdict(list)
+    for row in final_df.groupby([CONDITION_COL, BIN_COL]).agg('mean').itertuples():
+        condition, bin_num = row[0]
+        condition_mean_val_dict[condition].append(row[2])
+
+    for condition, y in condition_mean_val_dict.items():
+        ax.plot(y, lw=0.5, label=condition)
+
+    return ax
+
+def aggregate_intersecting_methylation_levels(
+    methylation_bed_fp,
+    extended_ann_bed,
+    tmp_file_dir,
+    binning_func,
+    SAMPLE_NAME_COL,
+    POS_COL,
+    METH_LEVEL_COL,
+    BIN_COL,
+):
+    name = pathutil.splitext(methylation_bed_fp)
+    tmp_file = os.path.join(temp_file_dir, '%s_tmp.bed' % sample_name)
+
+    if not os.path.exists(tmp_file):
+        methylation_bed = pybedtools.BedTool(methylation_bed_fp).sort()
+        intersection_bed = methylation_bed.intersect(extended_ann_bed, log=True) \
+                                          .filter(lambda iv: iv.fields[6] != '.') \
+                                          .saveas(os.path.join(temp_file_dir, '%s_tmp.bed' % sample_name))
+
+        data = {
+            SAMPLE_NAME_COL: [],
+            POS_COL: [],
+            METH_LEVEL_COL: [],
+            BIN_COL: [],
+        }
+
+        for interval in intersection_bed:
+            data[SAMPLE_NAME_COL].append(name)
+            data[POS_COL].append(interval.start)
+            data[METH_LEVEL_COL].append(interval.score)
+            data[BIN_COL].append(get_bin(interval.start, int(interval.fields[7]), int(interval.fields[8])))
+
+        data = pd.DataFrame(data)
+        data[METH_LEVEL_COL] = data[METH_LEVEL_COL].astype(np.float32)
+        data.to_csv(temp_file, sep='\t', index=False)
+    else:
+        data = pd.read_table(tmp_file)
+
+    aggregated = data.groupby([BIN_COL]).mean()
+    aggregated[BIN_COL] = aggregated.index
+    return aggregated

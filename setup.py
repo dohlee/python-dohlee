@@ -133,6 +133,7 @@ setup(
         'adjustText>=0.7.3',
         # 'fastTSNE>=0.2.6',
         'umap-learn>=0.3.4',
+        'pybedtools>=0.7.10',
     ],
     extras_require={
         # eg:
