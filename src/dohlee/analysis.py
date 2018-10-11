@@ -99,12 +99,12 @@ def default_get_bin(pos, start, end, bp_extension, outer_bin_size=50, inner_bin_
         x = pos - start
         bin_number = x // outer_bin_size
     elif start + bp_extension[0] <= pos < end - bp_extension[1]:
-        binsize = (end - start - sum(bp_extension)) // inner_bin_count
+        binsize = (end - start - sum(bp_extension)) / inner_bin_count
         x = pos - (start + bp_extension[0])
-        bin_number = x // binsize + bp_extension[0] // outer_bin_size
+        bin_number = int(x / binsize) + bp_extension[0] // outer_bin_size
     else:
         x = end - pos
-        bin_number = x // outer_bin_size + bp_extension[0] + inner_bin_count
+        bin_number = x // outer_bin_size + bp_extension[0] // outer_bin_size + inner_bin_count
     return bin_number
 
 
