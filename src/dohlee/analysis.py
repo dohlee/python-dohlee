@@ -1,17 +1,24 @@
 import os
 import sys
 import pybedtools
+import warnings
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from collections import defaultdict
+from collections import defaultdict, Counter
 from dohlee import bed as bed_util
 from dohlee import util
 from dohlee import plot
 
 from dohlee.thread import threaded
+
+def cv(series):
+    if series.mean() == 0:
+        warnings.warn('Mean of series is 0 when computing coefficient of variance.')
+
+    return series.std() / series.mean()
 
 def _confidence_interval(meth, unmeth):
     """Compute Agresti-Coull confidence interval.
@@ -112,13 +119,14 @@ def aggregate_methylation_landscapes(
     annotation_bed_fp,
     methylation_bed_fps,
     condition_fp,
-    bp_extension,
     temp_file_dir,
     SAMPLE_NAME_COL,
     CONDITION_COL,
+    bp_extension=None,
     POS_COL='Position',
     METH_LEVEL_COL='Methylation level',
     BIN_COL='Bin',
+    agg='mean',
     binning_func=None,
     outer_bin_size=50,
     inner_bin_count=100,
@@ -127,7 +135,6 @@ def aggregate_methylation_landscapes(
     threaded_kws={'progress': False},
 ):
     """Plot averaged methylation values across the regions which are annotated in the bed file.
-    TODO: Make aggregation methods can be chosen. e.g. 'mean', 'median', 'min', 'max', ...
     
     :param str annotation_bed_fp: Path to a BED file defining the region of interest.
     :param list methylation_bed_fps: A list of paths of BED files defining the meth-level of each CpG position. 
@@ -135,9 +142,11 @@ def aggregate_methylation_landscapes(
     :param str temp_file_dir: Path to a directory to save caches.
     :param str SAMPLE_NAME_COL: Name of the column denoting IDs of samples.
     :param str CONDITION_COL: Name of the column denoting conditions of samples.
+    :param int bp_extension: Amount of extension.
     :param str POS_COL: (default='Position') Name of the column denoting CpG positions.
     :param str METH_LEVEL_COL: (default='Methylation level') Name of the column denoting methylation levels.
     :param str BIN_COL: (default='Bin') Name of the column denoting bins.
+    :param str agg: (default='mean') Aggregation method. e.g. 'mean', 'var', 'min', 'max', 'cv'
     :param func binning_func: If possible, pass custom function that represents your binning strategy.
     :param int outer_bin_size: Size of each bin in outer extended regions.
     :param int inner_bin_count: Number of bins in inner regions, which are originally defined in the annotation BED file.
@@ -145,34 +154,53 @@ def aggregate_methylation_landscapes(
     :param int threads: Number of threads to use.
     :param dict threaded_kws: Keyword arguments passed to dohlee.threaded function.
     """
-    if binning_func is None:
-        binning_func = default_get_bin
+    binning_func = default_get_bin  if binning_func is None else binning_func
+    agg          = cv               if agg == 'cv'          else agg
 
     condition = pd.read_table(condition_fp)
+    # Sanity check of the condition file.
     assert SAMPLE_NAME_COL in condition.columns.values, \
         'Column representing sample names %s is not in condition file.' % SAMPLE_NAME_COL
 
-    # Sort and extend annotations with specified bp.
-    ann_bed = pybedtools.BedTool(annotation_bed_fp).sort()
+    # Sort and extend annotations with specified amount of bp's.
+    ann_bed          = pybedtools.BedTool(annotation_bed_fp).sort()
+    interval_lengths = [(iv.end - iv.start) for iv in ann_bed]
+
+    # If extension parameter is not given, set it as the most common interval length in BED file.
+    most_common_interval_length = util.most_common_value(Counter(interval_lengths))
+    if bp_extension is None:
+        bp_extension = [most_common_interval_length] * 2
+    
+    # Extend each of the intervals in given BED file with the amount given.
     extended_ann_bed = bed_util.extend_bed(ann_bed, bp=bp_extension, direction=extension_direction)
 
+    # Prepare parameters for multithreaded calls.
     params = [(bed, extended_ann_bed, temp_file_dir, binning_func, bp_extension, outer_bin_size, inner_bin_count, SAMPLE_NAME_COL, POS_COL, METH_LEVEL_COL, BIN_COL) for bed in methylation_bed_fps]
+    # Run multithreaded runs of aggregating (by computing average) methylation levels.
     aggregated_dfs = list(threaded(func=aggregate_intersecting_methylation_levels, params=params, processes=threads, **threaded_kws))
-    concat_df = pd.concat(aggregated_dfs)
-    final_df = concat_df.merge(condition, on=SAMPLE_NAME_COL, how='inner')
+    final_df = pd.concat(aggregated_dfs).merge(condition, on=SAMPLE_NAME_COL, how='inner')
 
     # Draw plot.
-    plt.style.use('dohlee')
     ax = plot.get_axis(preset='wide')
+    plt.style.use('dohlee')
 
     condition_mean_val_dict = defaultdict(list)
-    for row in final_df.groupby([CONDITION_COL, BIN_COL]).agg('mean').itertuples():
-        condition, bin_num = row[0]
-        condition_mean_val_dict[condition].append(row[2])
+    for (condition, bin_num), data in final_df.groupby([CONDITION_COL, BIN_COL]).agg(agg).iterrows():
+        condition_mean_val_dict[condition].append(data[METH_LEVEL_COL])
 
+    # TODO: Allow user to specify order of conditions to be plotted.
     for condition, y in condition_mean_val_dict.items():
         ax.plot(y, lw=0.5, label=condition)
 
+    ax.set_ylabel('Methylation level')
+    ax.tick_params(left=True, length=3, width=0.5, axis='y')
+
+    # Thinner spines.
+    for spine in ax.spines.values():
+        spine.set_linewidth(0.5)
+
+    # Show legends.
+    ax.legend(prop={'size': 'large'})
     return ax
 
 def aggregate_intersecting_methylation_levels(
@@ -206,7 +234,12 @@ def aggregate_intersecting_methylation_levels(
 
         for interval in intersection_bed:
             # Start and end position of the overlapping annotation interval.
-            start, end = int(interval.fields[7]), int(interval.fields[8])
+            try:
+                start, end = int(interval.fields[7]), int(interval.fields[8])
+            except:
+                with open(os.path.join(temp_file_dir, 'error.txt'), 'w') as outFile:
+                    print(interval, file=outFile)
+                raise IndexError 
 
             data[SAMPLE_NAME_COL].append(sample_name)
             data[POS_COL].append(interval.start)

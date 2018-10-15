@@ -19,12 +19,15 @@ def extend_bed(bed, bp, direction='both'):
         bp = [bp, bp]
 
     upstream_extension = 0 if direction == 'down' else bp[0]
-    downstream_extension = 0 if direction == 'up' else bp[0]
+    downstream_extension = 0 if direction == 'up' else bp[1]
 
     bed_strings = []
     for interval in bed:
         start = interval.start - upstream_extension
         end = interval.end + downstream_extension
+
+        if start < 0:
+            continue
 
         bed_strings.append(
             '%s %d %d %s %s %s' % (interval.chrom, start, end, interval.name, interval.score, interval.strand)

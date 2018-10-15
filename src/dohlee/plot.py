@@ -4,7 +4,6 @@ matplotlib.use('Agg')
 import sys
 import os
 import itertools
-import dohlee.analysis as analysis
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -15,6 +14,7 @@ import seaborn as sns
 from adjustText import adjust_text
 from collections import Counter
 from sklearn.decomposition import PCA
+from dohlee import analysis
 from matplotlib.lines import Line2D
 from collections import Counter
 from functools import wraps
