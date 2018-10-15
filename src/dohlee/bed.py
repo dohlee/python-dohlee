@@ -5,6 +5,8 @@ def extend_bed(bed, bp, direction='both'):
     If bp is a list, each interval will be extended bp[0] toward upstream, and
     bp[1] toward downstream.
 
+    Note: Be careful! This method does not deal with strandedness of the interval.
+
     :param (pybedtools.BedTool) bed: Bed object to be manipulated.
     :param (int, list) bp: Each interval will be extended according to bp.
     :param (str) direction: Direction of extension. Note that if bp is a list, direction will be fixed to 'both' ('up', 'down', 'both')
@@ -23,7 +25,7 @@ def extend_bed(bed, bp, direction='both'):
 
     bed_strings = []
     for interval in bed:
-        start = interval.start - upstream_extension
+        start = max(interval.start - upstream_extension, 0)
         end = interval.end + downstream_extension
 
         if start < 0:

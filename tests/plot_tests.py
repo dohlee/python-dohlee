@@ -8,7 +8,7 @@ import seaborn as sns
 
 from collections import Counter
 from functools import wraps
-from nose.tools import with_setup
+from nose.tools import with_setup, raises
 from matplotlib.testing.compare import compare_images
 
 
@@ -102,6 +102,24 @@ def frequency_test():
     data = [np.random.choice(a=range(10)) for _ in range(100)]
     ax = plot.get_axis(preset='wide')
     plot.frequency(data, ax=ax, xlabel='Your numbers', ylabel='Frequency')
+
+
+@with_setup(setup_function, teardown_function)
+def frequency_sort_by_values_test():
+    data = [np.random.choice(a=range(10)) for _ in range(100)]
+    ax = plot.get_axis(preset='wide')
+    plot.frequency(
+        data=data,
+        ax=ax,
+        sort_by_values=True,
+    )
+
+
+@raises(AssertionError)
+@with_setup(setup_function, teardown_function)
+def frequency_invalid_order_failing_test():
+    data = [1, 1, 3, 3, 4]
+    plot.frequency(data=data, order=[1, 2, 3])
 
 
 @with_setup(setup_function, teardown_function)
