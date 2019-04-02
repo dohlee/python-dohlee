@@ -27,13 +27,7 @@ def _get_ax_to_draw(ax, figsize=None):
     """If ax is not specified, return an axis to draw a plot.
     Otherwise, return ax.
     """
-    if ax:
-        return ax
-    else:
-        if figsize:
-            return get_axis(figsize=figsize)
-        else:
-            return get_axis(preset='wide')
+    return ax or get_axis(figsize=figsize)
 
 
 def _try_save(file, dpi=300):
@@ -143,22 +137,11 @@ def set_suptitle(title):
 
 
 # Set plot preference which looks good to me.
-def set_style(style='white', palette='deep', context='talk', font='FreeSans', font_scale=1.00, rcparams={'figure.figsize': (11.7, 8.27)}):
+def set_style(style='white', palette='deep', context='talk', font='FreeSans', font_scale=1.00):
     """Set plot preference in a way that looks good to me.
     """
     import matplotlib.font_manager as font_manager
-
-    styles = plt.style.available
-    if 'dohlee' not in styles:
-        if not os.path.exists(os.path.join(mpl.get_configdir(), 'stylelib')):
-            os.makedirs(os.path.join(mpl.get_configdir(), 'stylelib'))
-
-        request.urlretrieve(
-            'https://sgp1.digitaloceanspaces.com/dohlee-bioinfo/dotfiles/dohlee.mplstyle',
-            os.path.join(mpl.get_configdir(), 'stylelib', 'dohlee.mplstyle')
-        )
-        # Loading style files is done at import time, so we should explicitly reload style files.
-        plt.style.reload_library()
+    import cycler
 
     # Update font list.
     mpl_data_dir = os.path.dirname(mpl.matplotlib_fname())
@@ -172,47 +155,63 @@ def set_style(style='white', palette='deep', context='talk', font='FreeSans', fo
         context=context,
         font=font,
         font_scale=font_scale,
-        rc=rcparams
     )
-    plt.style.use('dohlee')
+    scale = 1.3
+    plt.rc('axes', linewidth=1.33, labelsize=14)
+    plt.rc('xtick', labelsize=10 * scale)
+    plt.rc('ytick', labelsize=10 * scale)
+
+    plt.rc('xtick', bottom=True)
+    plt.rc('xtick.major', size=5 * scale, width=1.33)
+    plt.rc('xtick.minor', size=5 * scale, width=1.33)
+
+    plt.rc('ytick', left=True)
+    plt.rc('ytick.major', size=5 * scale, width=1.33)
+    plt.rc('ytick.minor', size=5 * scale, width=1.33)
+
+    plt.rc('legend', fontsize=7 * scale)
+    plt.rc('grid', color='grey', linewidth=0.5, alpha=0.33)
+    plt.rc('font', family='Helvetica Neue')
+
+    color_palette = [
+        '#005AC8',
+        '#AA0A3C',
+        '#0AB45A',
+        '#FA7850',
+        '#8214A0',
+        '#FA78FA',
+        '#A0FA82',
+        '#006E82',
+        '#00A0FA',
+        '#14D2DC',
+        '#F0F032',
+        '#FAE6BE',
+    ]
+
+    mpl.rcParams['axes.prop_cycle'] = cycler.cycler(color=color_palette)
 
 
-def get_axis(preset=None, figsize=None, transpose=False, dpi=300):
+def get_axis(scale=1., figsize=None, transpose=False, dpi=300):
     """Get plot axis with predefined/user-defined width and height.
 
-    >>> get_axis(kind='extra-small')
-    >>> get_axis(kind='small')
-    >>> get_axis(kind='medium')
-    >>> get_axis(kind='large')
-    >>> get_axis(kind='extra-large')
-    >>> get_axis(kind='wide')
-    >>> get_axis(figsize=(7.2, 4.45))
+    >>> ax = get_axis()
+    >>> ax = get_axis(figsize=(7.2, 4.45))
 
-    :param str preset: Use preset width and height. (extra-small, small, medium, large, extra-large)
-    :param tuple figsize: Use user-defined width and height.
+    :param float scale: Figure size scale. Width and height will be scale with this value.
+    :param tuple figsize: Use user-defined width and height. If this is given, `scale` parameter will be ignored.
     :param bool transpose: Swap width and height.
     """
     w, h = 7.2, 4.45  # Nature double-column preset inches.
-    assert (preset is None) or (figsize is None), 'You cannot use both preset and figsize argument.'
-    assert not (preset is None and figsize is None), 'You should specify one of preset or figsize argument.'
-    if preset is not None:
-        if preset == 'extra-small':
-            w, h = w / 4, h / 4
-        elif preset == 'small':
-            w, h = w / 3.5, h / 3.5
-        elif preset == 'medium':
-            w, h = w / 2, h / 2
-        elif preset == 'large':
-            w, h = w / 1.66, h / 1.66
-        elif preset == 'extra-large':
-            w, h = w / 1.33, h / 1.33
-    else:
+    assert (scale is None) or (figsize is None), 'You cannot use both scale and figsize argument.'
+    if figsize is not None:
         w, h = figsize
+    else:
+        w, h = w * scale, h * scale
 
     if transpose:
         w, h = h, w
 
-    fig = plt.figure(figsize=(w, h), dpi=dpi)
+    fig = plt.figure(figsize=(w, h))
     ax = fig.add_subplot(111)
     return ax
 
@@ -232,7 +231,7 @@ def get_axis_from_grid(grid):
 
 
 @_my_plot
-def frequency(data, order=None, sort_by_values=False, dy=0.03, ax=None, **kwargs):
+def frequency(data, order=None, sort_by_values=False, dy=0.01, ax=None, **kwargs):
     """Plot frequency bar chart.
 
     >>> frequency([1, 2, 2, 3, 3, 3], order=[3, 1, 2], sort_by_values=True)
@@ -277,9 +276,9 @@ def frequency(data, order=None, sort_by_values=False, dy=0.03, ax=None, **kwargs
             x=x,
             y=count + dy,
             s=str(count),
-            size='large',
             va='bottom',
-            ha='center'
+            ha='center',
+            fontsize=12,
         )
 
     return ax
