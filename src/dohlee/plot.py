@@ -18,7 +18,6 @@ from dohlee import analysis
 from matplotlib.lines import Line2D
 from collections import Counter
 from functools import wraps
-from fastTSNE import TSNE
 from urllib import request
 from umap import UMAP
 
@@ -137,7 +136,7 @@ def set_suptitle(title):
 
 
 # Set plot preference which looks good to me.
-def set_style(style='white', palette='deep', context='talk', font='FreeSans', font_scale=1.00):
+def set_style(style='white', palette='deep', context='poster', font='FreeSans', font_scale=1.00):
     """Set plot preference in a way that looks good to me.
     """
     import matplotlib.font_manager as font_manager
@@ -156,7 +155,10 @@ def set_style(style='white', palette='deep', context='talk', font='FreeSans', fo
         font=font,
         font_scale=font_scale,
     )
-    scale = 1.3
+
+    scale_dict = {'paper': 1.3, 'notebook': 1.3, 'talk': 1.4, 'poster': 1.4}
+    scale = scale_dict[context]
+
     plt.rc('axes', linewidth=1.33, labelsize=14)
     plt.rc('xtick', labelsize=10 * scale)
     plt.rc('ytick', labelsize=10 * scale)
@@ -171,7 +173,7 @@ def set_style(style='white', palette='deep', context='talk', font='FreeSans', fo
 
     plt.rc('legend', fontsize=7 * scale)
     plt.rc('grid', color='grey', linewidth=0.5, alpha=0.33)
-    plt.rc('font', family='Helvetica Neue')
+    plt.rc('font', family=font)
 
     color_palette = [
         '#005AC8',
