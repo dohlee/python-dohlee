@@ -13,6 +13,8 @@ matrix:
     - python: '3.6'
       env:
         - TOXENV=py36,coveralls,codecov,check,docs
+services:
+  - xvfb
 before_install:
   - python --version
   - uname -a
@@ -26,8 +28,6 @@ install:
   - tox --version
 before_script:
   - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
-  - sleep 3 # give xvfb some time to start
   - "pyensembl install --release 87 --species homo_sapiens"
 script:
   - tox -v
