@@ -18,7 +18,7 @@ from dohlee import analysis
 from matplotlib.lines import Line2D
 from collections import Counter
 from functools import wraps
-from fastTSNE import TSNE
+from sklearn.manifold import TSNE
 from urllib import request
 from umap import UMAP
 
