@@ -7,20 +7,23 @@ import itertools
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import pysam
 import numpy as np
 import scipy.stats as stats
 import seaborn as sns
 
 from adjustText import adjust_text
-from collections import Counter
+from collections import Counter, defaultdict
 from sklearn.decomposition import PCA
 from dohlee import analysis
+from dohlee import alignment as align
 from matplotlib.lines import Line2D
 from collections import Counter
 from functools import wraps
 from sklearn.manifold import TSNE
 from urllib import request
 from umap import UMAP
+from matplotlib.ticker import ScalarFormatter
 
 
 def _get_ax_to_draw(ax, figsize=None):
@@ -429,10 +432,109 @@ def tsne(data, labels=None, ax=None, **kwargs):
             ax.legend(loc='best')
     return ax
 
+@_my_plot
+def coverages(path, chrom, start, end, strict=False, tick_every=1000, ax=None, **kwargs):
+    positions, covs = align.get_coverages(path, chrom, start, end, strict=strict)
+
+    for pos, cov in zip(positions, covs):
+        if cov == 0:
+            continue
+        ax.bar(pos, cov, width=1, color='grey', lw=0)
+    
+    ticks = [i for i in range(start, end) if i % tick_every == 0]
+    ax.set_xticks(ticks)
+    ax.ticklabel_format(style='plain', useOffset=False)
+
+    for loc, spine in ax.spines.items():
+        if loc == 'left':
+            spine.set_position(('outward', 20))
+            spine.set_smart_bounds(True)
+    
+    # Hide spines.
+    for d in ['top', 'right']:
+        ax.spines[d].set_visible(False)
+
+def has_no_overlap(r1, r2):
+    """Returns True if the two reads overlap.
+    """
+    r1_start, r1_end = r1.reference_start, r1.reference_end
+    r2_start, r2_end = r2.reference_start, r2.reference_end
+
+    return (r2_end <= r1_start) or (r1_end <= r2_start)
+
+def plot_bisulfite_read(read, depth_reads_dict, chrom, start, end, strict, ax):
+    # Find appropriate depth that this read does not overlap
+    # with the other reads.
+    s, e = read.reference_start, read.reference_end
+    if strict and not (start <= s < end and start <= e < end):
+        return depth_reads_dict
+
+    good_depth = 0
+    found_good_depth = False
+    if len(depth_reads_dict) == 0:
+        found_good_depth = True
+
+    for depth in sorted(depth_reads_dict.keys()):
+        if all(has_no_overlap(read, r) for r in depth_reads_dict[depth]):
+            appropriate_depth = depth
+            found_good_depth = True
+            break
+    
+    if not found_good_depth:
+        good_depth = max(depth_reads_dict.keys()) + 1
+    
+    depth_reads_dict[good_depth].append(read)
+
+    # Plot read.
+    len_read = read.reference_length
+    color = '#33333333'
+    rect = patches.Rectangle((s, good_depth), len_read, 1, color=color, lw=0)
+    ax.add_patch(rect)
+    
+    # Plot methylation state.
+    # Methylated: red
+    # Unmethylated: blue
+    for offset, state in enumerate(read.get_tag('XM')):
+        if state not in 'zZ':
+            continue
+        color = ['blue', 'red'][state == 'Z']
+        meth_state = patches.Rectangle((s + offset, good_depth), 1, 1, color=color)
+        ax.add_patch(meth_state)
+
+    return depth_reads_dict
+
+@_my_plot
+def bisulfite(path, chrom, start, end, ax=None,
+        tick_every=1000, strict=False, **kwargs):
+    depth_reads_dict = defaultdict(list)
+
+    # TODO: Automatically index alignment file, if it is not indexed?
+    for read in pysam.AlignmentFile(path, require_index=True).fetch(chrom, start, end):
+        depth_reads_dict = plot_bisulfite_read(read, depth_reads_dict, chrom, start, end, strict, ax)
+
+    max_depth = max(col.n for col in pysam.AlignmentFile(path).pileup(chrom, start, end))
+    ax.set_xlim(start, end)
+    ax.set_ylim(0, max_depth)
+
+    ticks = [i for i in range(start, end) if i % tick_every == 0]
+    ax.set_xticks(ticks)
+    ax.ticklabel_format(style='plain', useOffset=False)
+
+    # TODO: Modularize.
+    # move y axis to left.
+    for loc, spine in ax.spines.items():
+        if loc == 'left':
+            spine.set_position(('outward', 20))
+            spine.set_smart_bounds(True)
+
+    # Hide spines.
+    for d in ['top', 'right']:
+        ax.spines[d].set_visible(False)
 
 @_my_plot
 def mutation_signature(data, ax=None, **kwargs):
     def clear_spines(axis):
+        # TODO: Modularize.
         # Hide spines.
         directions = ['top', 'right', 'bottom', 'left']
         for d in directions:
