@@ -32,7 +32,7 @@ install:
 
 before_script:
   - "export DISPLAY=:99.0"
-  - "pyensembl install --release 87 --species homo_sapiens"
+  # - "pyensembl install --release 87 --species homo_sapiens"
 
 script:
   - tox -v
