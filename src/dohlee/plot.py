@@ -194,7 +194,7 @@ def set_style(style='white', palette='deep', context='talk', font='FreeSans', fo
     mpl.rcParams['axes.prop_cycle'] = cycler.cycler(color=color_palette)
 
 
-def get_axis(scale=1., figsize=None, transpose=False, dpi=300):
+def get_axis(scale=None, figsize=None, transpose=False, dpi=300):
     """Get plot axis with predefined/user-defined width and height.
 
     >>> ax = get_axis()
@@ -411,8 +411,7 @@ def tsne(data, labels=None, ax=None, **kwargs):
     :param kwargs: Any other keyword arguments will be passed onto matplotlib.pyplot.scatter.
     '''
     # Fit T-SNE and get embeddings.
-    tsne = TSNE(n_components=2)
-    embeddings = tsne.fit(data)
+    embeddings = TSNE(n_components=2).fit_transform(data)
 
     if labels is None:
         ax.scatter(x=embeddings[:, 0], y=embeddings[:, 1], **kwargs)
