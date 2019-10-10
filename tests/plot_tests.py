@@ -65,14 +65,14 @@ def pca_test():
 @with_setup(setup_function, teardown_function)
 def boxplot_test():
     iris = sns.load_dataset('iris')
-    ax = plot.get_axis(preset='wide', transpose=True)
+    ax = plot.get_axis(transpose=True)
     plot.boxplot(data=iris, x='species', y='sepal_length', ax=ax)
 
 
 @with_setup(setup_function, teardown_function)
 def histogram_test():
     iris = sns.load_dataset('iris')
-    ax = plot.get_axis(preset='wide')
+    ax = plot.get_axis()
     plot.histogram(iris.sepal_length,
                    bins=22,
                    xlabel='Sepal Length',
@@ -100,14 +100,14 @@ def mutation_signature_test():
 @with_setup(setup_function, teardown_function)
 def frequency_test():
     data = [np.random.choice(a=range(10)) for _ in range(100)]
-    ax = plot.get_axis(preset='wide')
+    ax = plot.get_axis()
     plot.frequency(data, ax=ax, xlabel='Your numbers', ylabel='Frequency')
 
 
 @with_setup(setup_function, teardown_function)
 def frequency_sort_by_values_test():
     data = [np.random.choice(a=range(10)) for _ in range(100)]
-    ax = plot.get_axis(preset='wide')
+    ax = plot.get_axis()
     plot.frequency(
         data=data,
         ax=ax,
@@ -125,7 +125,7 @@ def frequency_invalid_order_failing_test():
 @with_setup(setup_function, teardown_function)
 def tsne_test():
     iris = sns.load_dataset('iris')
-    ax = plot.get_axis(preset='wide')
+    ax = plot.get_axis()
     plot.tsne(
         iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']],
         ax=ax,
@@ -139,10 +139,10 @@ def linear_regression_test():
     x = np.linspace(0, 1, 100)
     y = 2 * x + 3 + np.random.normal(0, 0.3, len(x))
 
-    ax = plot.get_axis(preset='large')
+    ax = plot.get_axis()
     plot.linear_regression(x, y, ax=ax)
 
-    ax = plot.get_axis(preset='medium')
+    ax = plot.get_axis()
     plot.linear_regression(x, y, regression=False, ax=ax)
 
 
@@ -283,7 +283,7 @@ def legend_title_test():
 @with_setup(setup_function, teardown_function)
 def umap_test():
     iris = sns.load_dataset('iris')
-    ax = plot.get_axis(preset='wide')
+    ax = plot.get_axis()
     plot.umap(
         iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']],
         ax=ax,
@@ -322,7 +322,7 @@ def dimensionality_reduction_test():
 @with_setup(setup_function, teardown_function)
 def line_test():
     fmri = sns.load_dataset('fmri')
-    ax = plot.get_axis(preset='wide')
+    ax = plot.get_axis()
     plot.line(
         data=fmri,
         x='timepoint',
