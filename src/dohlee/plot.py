@@ -11,12 +11,12 @@ import pysam
 import numpy as np
 import scipy.stats as stats
 import seaborn as sns
+import dohlee.seq as seq
 
 from adjustText import adjust_text
 from collections import Counter, defaultdict
 from sklearn.decomposition import PCA
 from dohlee import analysis
-from dohlee import alignment as align
 from matplotlib.lines import Line2D
 from collections import Counter
 from functools import wraps
@@ -434,7 +434,7 @@ def tsne(data, labels=None, ax=None, **kwargs):
 
 @_my_plot
 def coverages(path, chrom, start, end, strict=False, tick_every=1000, ax=None, **kwargs):
-    positions, covs = align.get_coverages(path, chrom, start, end, strict=strict)
+    positions, covs = seq.get_coverages(path, chrom, start, end, strict=strict)
 
     for pos, cov in zip(positions, covs):
         if cov == 0:
