@@ -194,7 +194,7 @@ def set_style(style='white', palette='deep', context='talk', font='FreeSans', fo
     mpl.rcParams['axes.prop_cycle'] = cycler.cycler(color=color_palette)
 
 
-def get_axis(scale=None, figsize=None, transpose=False, dpi=300):
+def get_axis(figsize=None, transpose=False, dpi=300):
     """Get plot axis with predefined/user-defined width and height.
 
     >>> ax = get_axis()
@@ -205,11 +205,8 @@ def get_axis(scale=None, figsize=None, transpose=False, dpi=300):
     :param bool transpose: Swap width and height.
     """
     w, h = 7.2, 4.45  # Nature double-column preset inches.
-    assert (scale is None) or (figsize is None), 'You cannot use both scale and figsize argument.'
     if figsize is not None:
         w, h = figsize
-    else:
-        w, h = w * scale, h * scale
 
     if transpose:
         w, h = h, w

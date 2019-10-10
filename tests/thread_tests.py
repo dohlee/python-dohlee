@@ -40,9 +40,3 @@ def threaded_single_parameter_with_tqdm_progress_test():
     tasks = [1, 2, 3]
     results = list(thread.threaded(func=process_single_parameter_task, params=tasks, processes=2, progress=True))
     assert results == [1, 4, 9]
-
-
-@raises(ImportError)
-def threaded_single_parameter_with_no_progress_test():
-    tasks = [1, 2, 3]
-    results = list(thread.threaded(func=process_single_parameter_task, params=tasks, processes=2, progress=True, progress_type='tqdm_notebook'))
