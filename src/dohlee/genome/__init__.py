@@ -42,6 +42,45 @@ def has_overlap(r1, r2):
     
     return a0 <= b1 and b0 <= a1
 
+def fetch_annotation(annotation, chrom, start, end):
+    """Returns a generator of annoation rows for given genomic region.
+    """
+    return pysam.TabixFile(annotation).fetch(chrom, start, end, parser=pysam.asGTF)
+
+def get_gene_ids_at_region(annotation, chrom=None, start=None, end=None, region=None):
+    assert (chrom is None) or (region is None), "Please don't specify chrom and region at the same time."
+    if region is not None:
+        chrom, start, end = region.chrom, region.start, region.end
+    fetched = fetch_annotation(annotation, chrom, start, end)
+    return [row.gene_id for row in fetched if row.feature == 'gene']
+
+def get_transcript_ids_at_region(annotation, chrom=None, start=None, end=None):
+    assert (chrom is None) or (region is None), "Please don't specify chrom and region at the same time."
+    if region is not None:
+        chrom, start, end = region.chrom, region.start, region.end
+    fetched = fetch_annotation(annotation, chrom, start, end)
+    return [row.transcript_id for row in fetched if row.feature == 'transcript']
+
+def annotate(table, db):
+    if 'chrom' not in table.columns:
+        raise ValueError("Column 'chrom' should be specified in the table.")
+    if 'start' not in table.columns:
+        raise ValueError("Column 'start' should be specified in the table.")
+    if 'end' not in table.columns:
+        raise ValueError("Column 'end' should be specified in the table.")
+
+    for db_name, db_path in db.items():
+        tbx = pysam.TabixFile(db_path)
+        values = []
+        for record in table.itertuples():
+            hits = [read.name for read in tbx.fetch(record.chrom, record.start, record.end, parser=pysam.asBed())]
+            v = ';'.join(hits) if hits else np.nan
+
+            values.append(v)
+        table[db_name] = values
+    
+    return table
+
 if __name__ == '__main__':
     r1 = Region('chr1', 1000, 2000)
     r2 = Region('chr1', 1500, 3000)
