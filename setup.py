@@ -33,6 +33,7 @@ class new_install(install):
         install_path = find_module_path()
 
         import matplotlib as mpl
+        import shutil
 
         # Find where matplotlib stores its True Type fonts
         mpl_data_dir = os.path.dirname(mpl.matplotlib_fname())
