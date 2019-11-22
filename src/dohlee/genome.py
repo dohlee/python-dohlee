@@ -1,4 +1,6 @@
 from collections import namedtuple
+import pysam
+import numpy as np
 
 class Region(namedtuple('Region', ['chrom', 'start', 'end'])):
     def __new__(cls, chrom, start, end):
@@ -74,11 +76,15 @@ def annotate(table, db):
         values = []
         for record in table.itertuples():
             hits = [read.name for read in tbx.fetch(record.chrom, record.start, record.end, parser=pysam.asBed())]
-            v = ';'.join(hits) if hits else np.nan
+            # hits = []
+            # for read in tbx.fetch(record.chrom, record.start, record.end, parser=pysam.asBed()):
+                # if read.start <= record.start and record.end <= read.end:
+                    # hits.append(read.name)
 
+            v = ';'.join(hits) if hits else np.nan
             values.append(v)
+
         table[db_name] = values
-    
     return table
 
 if __name__ == '__main__':

@@ -91,7 +91,7 @@ setup(
     package_dir={'': 'src'},
     py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
     include_package_data=True,
-    zip_safe=False,
+    zip_safe=True,
     classifiers=[
         # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
         'Development Status :: 5 - Production/Stable',
@@ -119,6 +119,7 @@ setup(
     ],
     install_requires=[
         # eg: 'aspectlib==1.1.1', 'six>=1.7',
+        'pybigwig',
         'matplotlib>=3.0.0',
         'numpy>=1.14.2',
         'pandas>=0.23.4',
