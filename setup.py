@@ -65,7 +65,7 @@ class new_install(install):
 
 setup(
     name='dohlee',
-    version='0.1.24',
+    version='0.1.25',
     license='MIT license',
     description='My personal python utility library.',
     # long_description='%s\n%s' % (
