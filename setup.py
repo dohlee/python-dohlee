@@ -64,7 +64,7 @@ class new_install(install):
         super(new_install, self).__init__(*args, **kwargs)
         print(f'self.install_base = {self.install_base}')
         print(f'self.install_platbase = {self.install_platbase}')
-        print(f'self.install_root = {self.install_root}')
+        print(f'self.root = {self.root}')
         print(f'self.install_purelib = {self.install_purelib}')
         print(f'self.install_platlib = {self.install_platlib}')
         print(f'self.install_lib = {self.install_lib}')
