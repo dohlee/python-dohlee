@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import io
+import atexit
 from glob import glob
 from os.path import basename
 from os.path import dirname
@@ -14,57 +15,42 @@ from setuptools import find_packages
 from setuptools import setup
 from setuptools.command.install import install
 
+def move_ttf():
+    import os
+    import shutil
+    import dohlee as doh
+    import matplotlib as mpl
 
-class move_ttf(install):
-    def run(self):
-        """
-        Adopted from https://github.com/breedlun/clearplot/blob/master/setup.py
+    # Find where matplotlib stores its True Type fonts
+    mpl_data_dir = os.path.dirname(mpl.matplotlib_fname())
+    mpl_ttf_dir = os.path.join(mpl_data_dir, 'fonts', 'ttf')
+    if not os.path.exists(mpl_ttf_dir):
+        os.makedirs(mpl_ttf_dir)
 
-        Performs the usual install process and then copies the True Type fonts
-        that come with clearplot into matplotlib's True Type font directory,
-        and deletes the matplotlib fontList.cache
-        """
-        # Perform the usual install process
-        install.run(self)
-        # Try to install custom fonts
-        # try:
-        import os
-        import shutil
-        import dohlee as doh
-        import matplotlib as mpl
-        import matplotlib.font_manager as font_manager
+    # Copy the font files to matplotlib's True Type font directory
+    # (I originally tried to move the font files instead of copy them,
+    # but it did not seem to work, so I gave up.)
+    doh_ttf_dir = os.path.join(os.path.dirname(doh.__file__), 'fonts')
+    for file_name in os.listdir(doh_ttf_dir):
+        if file_name[-4:] == '.ttf':
+            old_path = os.path.join(doh_ttf_dir, file_name)
+            new_path = os.path.join(mpl_ttf_dir, file_name)
+            shutil.copyfile(old_path, new_path)
+            print("Copying " + old_path + " -> " + new_path)
 
-        # Find where matplotlib stores its True Type fonts
-        mpl_data_dir = os.path.dirname(mpl.matplotlib_fname())
-        mpl_ttf_dir = os.path.join(mpl_data_dir, 'fonts', 'ttf')
-        if not os.path.exists(mpl_ttf_dir):
-            os.makedirs(mpl_ttf_dir)
+    # Try to delete matplotlib's fontList cache
+    mpl_cache_dir = mpl.get_cachedir()
+    mpl_cache_dir_ls = os.listdir(mpl_cache_dir)
+    font_list_cache_names = ["fontList.cache", "fontList.py3k.cache"]
+    for font_list_cache_name in font_list_cache_names:
+        if font_list_cache_name in mpl_cache_dir_ls:
+            fontList_path = os.path.join(mpl_cache_dir, font_list_cache_name)
+            os.remove(fontList_path)
+            print("Deleted the matplotlib " + font_list_cache_name)
 
-        # Copy the font files to matplotlib's True Type font directory
-        # (I originally tried to move the font files instead of copy them,
-        # but it did not seem to work, so I gave up.)
-        doh_ttf_dir = os.path.join(os.path.dirname(doh.__file__), 'fonts')
-        for file_name in os.listdir(doh_ttf_dir):
-            if file_name[-4:] == '.ttf':
-                old_path = os.path.join(doh_ttf_dir, file_name)
-                new_path = os.path.join(mpl_ttf_dir, file_name)
-                shutil.copyfile(old_path, new_path)
-                print("Copying " + old_path + " -> " + new_path)
-
-        # Try to delete matplotlib's fontList cache
-        mpl_cache_dir = mpl.get_cachedir()
-        mpl_cache_dir_ls = os.listdir(mpl_cache_dir)
-        font_list_cache_names = ["fontList.cache", "fontList.py3k.cache"]
-        for font_list_cache_name in font_list_cache_names:
-            if font_list_cache_name in mpl_cache_dir_ls:
-                fontList_path = os.path.join(mpl_cache_dir, font_list_cache_name)
-                os.remove(fontList_path)
-                print("Deleted the matplotlib " + font_list_cache_name)
-
-        # except Exception as e:
-        #     print(Exception)
-        #     warnings.warn("WARNING: An issue occured while installing the custom fonts for dohlee.plot.")
-
+    # except Exception as e:
+    #     print(Exception)
+    #     warnings.warn("WARNING: An issue occured while installing the custom fonts for dohlee.plot.")
 
 def read(*names, **kwargs):
     return io.open(
@@ -72,6 +58,10 @@ def read(*names, **kwargs):
         encoding=kwargs.get('encoding', 'utf8')
     ).read()
 
+class new_install(install):
+    def __init__(self, *args, **kwargs):
+        super(new_install, self).__init__(*args, **kwargs)
+        atexit.register(move_ttf)
 
 setup(
     name='dohlee',
@@ -150,6 +140,6 @@ setup(
         '': ['fonts/*.ttf']
     },
     cmdclass={
-        'install': move_ttf
+        'install': new_install
     },
 )
