@@ -4,7 +4,8 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import io
-import atexit
+import os
+import sys
 from glob import glob
 from os.path import basename
 from os.path import dirname
@@ -15,44 +16,6 @@ from setuptools import find_packages
 from setuptools import setup
 from setuptools.command.install import install
 
-def move_ttf():
-    print('Running post-install script move_ttf.')
-    import os
-    import shutil
-    import dohlee as doh
-    import matplotlib as mpl
-
-    # Find where matplotlib stores its True Type fonts
-    mpl_data_dir = os.path.dirname(mpl.matplotlib_fname())
-    mpl_ttf_dir = os.path.join(mpl_data_dir, 'fonts', 'ttf')
-    if not os.path.exists(mpl_ttf_dir):
-        os.makedirs(mpl_ttf_dir)
-
-    # Copy the font files to matplotlib's True Type font directory
-    # (I originally tried to move the font files instead of copy them,
-    # but it did not seem to work, so I gave up.)
-    doh_ttf_dir = os.path.join(os.path.dirname(doh.__file__), 'fonts')
-    for file_name in os.listdir(doh_ttf_dir):
-        if file_name.endswith('.ttf'):
-            old_path = os.path.join(doh_ttf_dir, file_name)
-            new_path = os.path.join(mpl_ttf_dir, file_name)
-            shutil.copyfile(old_path, new_path)
-            print("Copying " + old_path + " -> " + new_path)
-
-    # Try to delete matplotlib's fontList cache
-    mpl_cache_dir = mpl.get_cachedir()
-    mpl_cache_dir_ls = os.listdir(mpl_cache_dir)
-    font_list_cache_names = ["fontList.cache", "fontList.py3k.cache"]
-    for font_list_cache_name in font_list_cache_names:
-        if font_list_cache_name in mpl_cache_dir_ls:
-            fontList_path = os.path.join(mpl_cache_dir, font_list_cache_name)
-            os.remove(fontList_path)
-            print("Deleted the matplotlib " + font_list_cache_name)
-
-    # except Exception as e:
-    #     print(Exception)
-    #     warnings.warn("WARNING: An issue occured while installing the custom fonts for dohlee.plot.")
-
 def read(*names, **kwargs):
     return io.open(
         join(dirname(__file__), *names),
@@ -60,18 +23,45 @@ def read(*names, **kwargs):
     ).read()
 
 class new_install(install):
-    def __init__(self, *args, **kwargs):
-        super(new_install, self).__init__(*args, **kwargs)
-        print(f'self.install_base = {self.install_base}')
-        print(f'self.install_platbase = {self.install_platbase}')
-        print(f'self.root = {self.root}')
-        print(f'self.install_purelib = {self.install_purelib}')
-        print(f'self.install_platlib = {self.install_platlib}')
-        print(f'self.install_lib = {self.install_lib}')
-        print(f'self.install_headers = {self.install_headers}')
-        print(f'self.install_scripts = {self.install_scripts}')
-        print(f'self.install_data = {self.install_data}')
-        atexit.register(move_ttf)
+    def run(self):
+        def find_module_path():
+            for p in sys.path:
+                if os.path.isdir(p) and 'dohlee' in os.listdir(p):
+                    return os.path.join(p, 'dohlee')
+
+        install.run(self)
+        install_path = find_module_path()
+
+        import os
+        import shutil
+        import matplotlib as mpl
+
+        # Find where matplotlib stores its True Type fonts
+        mpl_data_dir = os.path.dirname(mpl.matplotlib_fname())
+        mpl_ttf_dir = os.path.join(mpl_data_dir, 'fonts', 'ttf')
+        if not os.path.exists(mpl_ttf_dir):
+            os.makedirs(mpl_ttf_dir)
+
+        # Copy the font files to matplotlib's True Type font directory
+        # (I originally tried to move the font files instead of copy them,
+        # but it did not seem to work, so I gave up.)
+        doh_ttf_dir = os.path.join(install_path, 'fonts')
+        for file_name in os.listdir(doh_ttf_dir):
+            if file_name.endswith('.ttf'):
+                old_path = os.path.join(doh_ttf_dir, file_name)
+                new_path = os.path.join(mpl_ttf_dir, file_name)
+                shutil.copyfile(old_path, new_path)
+                print("Copying " + old_path + " -> " + new_path)
+
+        # Try to delete matplotlib's fontList cache
+        mpl_cache_dir = mpl.get_cachedir()
+        mpl_cache_dir_ls = os.listdir(mpl_cache_dir)
+        font_list_cache_names = ["fontList.cache", "fontList.py3k.cache"]
+        for font_list_cache_name in font_list_cache_names:
+            if font_list_cache_name in mpl_cache_dir_ls:
+                fontList_path = os.path.join(mpl_cache_dir, font_list_cache_name)
+                os.remove(fontList_path)
+                print("Deleted matplotlib " + font_list_cache_name)
 
 setup(
     name='dohlee',
