@@ -23,7 +23,7 @@ copyright = '2018, Dohoon Lee'
 author = 'Dohoon Lee'
 
 # The full version, including alpha/beta/rc tags
-version = release = '0.1.25'
+version = release = '0.1.26'
 
 
 # -- General configuration ---------------------------------------------------
