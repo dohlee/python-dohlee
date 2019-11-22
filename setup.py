@@ -16,6 +16,7 @@ from setuptools import setup
 from setuptools.command.install import install
 
 def move_ttf():
+    print('Running post-install script move_ttf.')
     import os
     import shutil
     import dohlee as doh
@@ -32,7 +33,7 @@ def move_ttf():
     # but it did not seem to work, so I gave up.)
     doh_ttf_dir = os.path.join(os.path.dirname(doh.__file__), 'fonts')
     for file_name in os.listdir(doh_ttf_dir):
-        if file_name[-4:] == '.ttf':
+        if file_name.endswith('.ttf'):
             old_path = os.path.join(doh_ttf_dir, file_name)
             new_path = os.path.join(mpl_ttf_dir, file_name)
             shutil.copyfile(old_path, new_path)
@@ -61,6 +62,15 @@ def read(*names, **kwargs):
 class new_install(install):
     def __init__(self, *args, **kwargs):
         super(new_install, self).__init__(*args, **kwargs)
+        print(f'self.install_base = {self.install_base}')
+        print(f'self.install_platbase = {self.install_platbase}')
+        print(f'self.install_root = {self.install_root}')
+        print(f'self.install_purelib = {self.install_purelib}')
+        print(f'self.install_platlib = {self.install_platlib}')
+        print(f'self.install_lib = {self.install_lib}')
+        print(f'self.install_headers = {self.install_headers}')
+        print(f'self.install_scripts = {self.install_scripts}')
+        print(f'self.install_data = {self.install_data}')
         atexit.register(move_ttf)
 
 setup(
