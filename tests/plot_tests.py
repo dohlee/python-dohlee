@@ -65,7 +65,7 @@ def pca_test():
 @with_setup(setup_function, teardown_function)
 def boxplot_test():
     iris = sns.load_dataset('iris')
-    ax = plot.get_axis(transpose=True)
+    ax = plot.get_axis()
     plot.boxplot(data=iris, x='species', y='sepal_length', ax=ax)
 
 
@@ -309,7 +309,7 @@ def pca_with_no_xyticklabels_test():
 @with_setup(setup_function, teardown_function)
 def dimensionality_reduction_test():
     iris = sns.load_dataset('iris')
-    ax = plot.get_axis(figsize=(8.4 * 3, 8.4))
+    ax = plot.get_axis(figsize=(15, 5))
     plot.dimensionality_reduction(
         data=iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']],
         labels=iris.species,

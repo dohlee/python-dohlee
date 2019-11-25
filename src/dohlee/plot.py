@@ -843,23 +843,23 @@ def umap(data, labels=None, ax=None, **kwargs):
 
 
 @_my_plot
-def dimensionality_reduction(data, labels, ax=None):
-    ax = get_axis(figsize=(20, 4))
-    grid = get_grid((1, 5), ax=ax)
-    axes = [get_axis_from_grid(grid[i]) for i in range(5)]
+def dimensionality_reduction(data, labels, ax=None, scatter_kwargs={}):
+    grid = get_grid((1, 3), ax=ax)
+    axes = [get_axis_from_grid(grid[i]) for i in range(3)]
 
-    common_args = dict(
+    common_kwargs = dict(
         data=data,
         labels=labels,
-        # FIXME: HARD-CODED legend size.
-        legend_size='medium',
+        legend_size=11,
         xticklabels=False,
         yticklabels=False,
     )
 
-    pca(ax=axes[0], title='PCA', **common_args)
-    tsne(ax=axes[1], title='T-SNE', **common_args)
-    umap(ax=axes[2], title='UMAP', **common_args)
+    pca(ax=axes[0], title='PCA', **common_kwargs, **scatter_kwargs)
+    tsne(ax=axes[1], title='t-SNE', **common_kwargs, **scatter_kwargs)
+    umap(ax=axes[2], title='UMAP', **common_kwargs, **scatter_kwargs)
+
+    return ax
 
 
 @_my_plot
