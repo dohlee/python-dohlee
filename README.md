@@ -62,7 +62,7 @@ plot.tsne(
     labels=iris['species']
 )
 ```
-<p align='center'><img src='img/tsne.png' width="300" height="300"></p>
+<p align='center'><img src='img/tsne.png' width="300" height="300" /></p>
 
 ***dohlee.plot.stacked_bar_chart***
 ```python
@@ -94,7 +94,7 @@ y = 2 * x + 3 + np.random.normal(0, 0.3, len(x))
 
 plot.linear_regression(x, y, ax=ax)
 ```
-<h2 align='center'><img src='img/linear_regression.png' /></h2>
+<p align='center'><img src='img/linear_regression.png' width="300" height="300" /></p>
 
 <h2 align='center'>Development</h2>
 

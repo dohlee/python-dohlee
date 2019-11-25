@@ -684,6 +684,8 @@ def linear_regression(x, y, regression=True, ax=None, color='k'):
     for item in legend.legendHandles:
         item.set_visible(False)
 
+    return ax
+
 
 @_my_plot
 def m_bias(mbias_data, ax=None):
