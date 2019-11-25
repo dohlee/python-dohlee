@@ -42,7 +42,7 @@ ax = plot.get_axis(preset='wide')
 plot.histogram(iris.sepal_length, bins=22, xlabel='Sepal Length', ylabel='Frequency', ax=ax)
 ```
 
-<p align='center'><img src='img/histogram.png' /></p>
+<p align='center'><img src='img/histogram.png' width="300" height="180"/></p>
 
 ***dohlee.plot.frequency***
 ```python
@@ -50,7 +50,7 @@ ax = plot.get_axis(preset='wide')
 plot.frequency(data, ax=ax, xlabel='Your numbers', ylabel='Frequency')
 ```
 
-<p align='center'><img src='img/frequency.png'></p>
+<p align='center'><img src='img/frequency.png' width="300" height="240"></p>
 
 ***dohlee.plot.tsne***
 ```python
