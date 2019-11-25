@@ -62,7 +62,7 @@ plot.tsne(
     labels=iris['species']
 )
 ```
-<p align='center'><img src='img/tsne.png'></p>
+<p align='center'><img src='img/tsne.png' width="300" height="300"></p>
 
 ***dohlee.plot.stacked_bar_chart***
 ```python
