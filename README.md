@@ -34,7 +34,7 @@ ax = plot.get_axis(preset='wide', transpose=True)
 plot.boxplot(data=iris, x='species', y='sepal_length', ax=ax)
 ```
 
-<p align='center'><img src='img/boxplot.png' style='width:300px'/></p>
+<p align='center'><img src='img/boxplot.png' width="300" height="300"/></p>
 
 ***dohlee.plot.histogram***
 ```python
